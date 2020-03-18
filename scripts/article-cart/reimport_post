@@ -1,0 +1,3 @@
+node carttoEls.js delete posts
+node carttoEls.js create posts
+node carttoEls.js sync posts

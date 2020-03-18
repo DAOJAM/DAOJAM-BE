@@ -1,0 +1,3 @@
+node carttoEls.js delete users
+node carttoEls.js create users
+node carttoEls.js sync users

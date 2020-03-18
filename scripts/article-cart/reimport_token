@@ -1,0 +1,3 @@
+node carttoEls.js delete tokens
+node carttoEls.js create tokens
+node carttoEls.js sync tokens
