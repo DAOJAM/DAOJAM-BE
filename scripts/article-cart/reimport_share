@@ -1,0 +1,3 @@
+node carttoEls.js delete shares
+node carttoEls.js create shares
+node carttoEls.js sync shares

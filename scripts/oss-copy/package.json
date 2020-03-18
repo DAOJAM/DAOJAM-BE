@@ -1,0 +1,22 @@
+{
+  "name": "ss-backend-scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ipfsmove.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kumo-YZX",
+  "license": "ISC",
+  "dependencies": {
+    "ali-oss": "^6.1.1",
+    "async-mysql": "^1.0.1",
+    "base-64": "^0.1.0",
+    "crypto-js": "^3.1.9-1",
+    "file-type": "^12.0.1",
+    "image-downloader": "^3.4.2",
+    "moment": "^2.24.0",
+    "mysql": "^2.17.1",
+    "mysql2": "^1.6.5"
+  }
+}
