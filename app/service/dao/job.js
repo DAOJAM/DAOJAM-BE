@@ -30,17 +30,31 @@ class JobService extends Service {
    */
   async create(creates) {
     let result = null;
+
+    const conn = await this.app.mysql.beginTransaction();
+
     try {
-      const res = await this.app.mysql.insert(
+      // 删除用户的所有身份
+      await conn.delete('user_job', {
+        uid: creates[0].uid // 使用第一个数组的uid
+      });
+
+      // 创建身份
+      const res = await conn.insert(
         'user_job',
         creates
       );
+
+      await conn.commit();
+
       this.ctx.logger.info('service.dao.job.update result', res);
+
       result = {
         status: true,
         msg: res.affectedRows,
       };
     } catch (error) {
+      await conn.rollback();
       result = {
         status: false,
         msg: error.code,
