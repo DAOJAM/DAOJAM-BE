@@ -4,7 +4,6 @@ services:
     restart: always
     build: .
     hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-    # command: npm run serve
     command: npm run dev
     volumes:
       - /usr/local/daojam-prod/backend-config/config.local.js:/usr/src/app/config/config.default.js
@@ -18,7 +17,6 @@ services:
     restart: always
     build: .
     hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-    # command: npm run serve
     command: npm run dev
     volumes:
       - /usr/local/daojam-prod/backend-config/config.local.js:/usr/src/app/config/config.default.js
@@ -32,7 +30,6 @@ services:
     restart: always
     build: .
     hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-    # command: npm run serve
     command: npm run dev
     volumes:
       - /usr/local/daojam-testing/backend-config/config.local.js:/usr/src/app/config/config.default.js
