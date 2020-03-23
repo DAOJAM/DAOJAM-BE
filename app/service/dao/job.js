@@ -30,7 +30,6 @@ class JobService extends Service {
    */
   async create(creates) {
     let result = null;
-
     const conn = await this.app.mysql.beginTransaction();
 
     try {
