@@ -1,16 +1,5 @@
 version: "2"
 services:
-  # ipfs:
-  #   restart: always
-  #   image: ipfs/go-ipfs
-  #   hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-  #   volumes:
-  #     - ~/ipfs-data-volumes:/data/ipfs
-  #   networks:
-  #     overlay:
-  #       aliases:
-  #         - ipfs
-
   prod:
     restart: always
     build: .
@@ -18,8 +7,8 @@ services:
     # command: npm run serve
     command: npm run dev
     volumes:
-      - /usr/local/smart-signature/ss-backend-config/config.prod.js:/usr/src/app/config/config.default.js
-      - /usr/local/smart-signature/ss-backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
+      - /usr/local/daojam-prod/backend-config/config.local.js:/usr/src/app/config/config.default.js
+      - /usr/local/daojam-prod/backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
     ports:
       - 7653:7001
     networks:
@@ -32,8 +21,8 @@ services:
     # command: npm run serve
     command: npm run dev
     volumes:
-      - /usr/local/smart-signature/ss-backend-config/config.prod.js:/usr/src/app/config/config.default.js
-      - /usr/local/smart-signature/ss-backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
+      - /usr/local/daojam-prod/backend-config/config.local.js:/usr/src/app/config/config.default.js
+      - /usr/local/daojam-prod/backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
     ports:
       - 7654:7001
     networks:
@@ -46,8 +35,8 @@ services:
     # command: npm run serve
     command: npm run dev
     volumes:
-      - /usr/local/smart-signature/ss-backend-config/config.local.js:/usr/src/app/config/config.default.js
-      - /usr/local/smart-signature/ss-backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
+      - /usr/local/daojam-testing/backend-config/config.local.js:/usr/src/app/config/config.default.js
+      - /usr/local/daojam-testing/backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
     ports:
       - 7652:7001
     networks:
@@ -60,51 +49,12 @@ services:
     # command: npm run serve
     command: npm run dev
     volumes:
-      - /Users/zhangxiang/workspace/smart-signature-backend/config/config.default.js:/usr/src/app/config/config.default.js
-      - /Users/zhangxiang/workspace/smart-signature-backend/config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
+      - /Users/zhangxiang/workspace/daojam-backend/config/config.default.js:/usr/src/app/config/config.default.js
+      - /Users/zhangxiang/workspace/daojam-backend/config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
     ports:
       - 7652:7001
     networks:
       overlay:
 
-  # app:
-  #   restart: always
-  #   build: .
-  #   hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-  #   command: node app.js
-  #   volumes:
-  #     - ~/config.js://usr/src/app/config.js
-  #   ports:
-  #     - 7001:7001
-  #   networks:
-  #     overlay:
-  # steam_key_backend:
-  #   restart: always
-  #   build: .
-  #   hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-  #   command: node steam_key_backend.js
-  #   volumes:
-  #     - ~/config.js://usr/src/app/config.js
-  #   ports:
-  #     - 3300:3000
-  #   networks:
-  #     overlay:
-  # mysql:
-  #   restart: always
-  #   image: mysql:5.7.21
-  #   hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-  #   ports:
-  #     - 3306:3306
-  #   networks:
-  #     overlay:
-  #       aliases:
-  #         - mysql
-  #   environment:
-  #     - "MYSQL_ROOT_PASSWORD=root"
-  #   volumes:
-  #     - ~/mysql-data-volumes/mysql:/var/lib/mysql
 networks:
   overlay:
-
-
-
