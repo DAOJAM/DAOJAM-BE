@@ -30,9 +30,9 @@ module.exports = {
     enable: true,
     package: 'egg-redis',
   },
-  // 微信支付
-  alinode: {
-    enable: true,
-    package: 'egg-alinode',
-  },
+  //
+  // alinode: {
+  //   enable: true,
+  //   package: 'egg-alinode',
+  // },
 };
