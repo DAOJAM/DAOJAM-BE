@@ -219,14 +219,6 @@ module.exports = app => {
   // 直接评论，需要支付积分
   router.post('/comment/comment', passport.authorize, controller.comment.comment);
 
-  // -------------------------------- 橙皮书 --------------------------------
-  // 橙皮书合约广告人、次统计
-  router.get('/ads/statistics', passport.verify, controller.ads.statistics);
-  // 获取广告
-  router.get('/ads/ad', passport.verify, controller.ads.ad);
-  // 最高出价者 上传广告资料
-  router.post('/ads/submit', passport.authorize, controller.ads.submit);
-
   // -------------------------------- 对外API --------------------------------
   // 获取微信API签名
   router.get('/wx/sign', passport.verify, controller.wechat.calculateSign);
