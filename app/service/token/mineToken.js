@@ -205,6 +205,7 @@ class MineTokenService extends Service {
         await conn.insert('minetoken_lives', {
           token_id: tokenId,
           uid: live.uid,
+          title: live.title,
           content: live.content,
           create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
         });
