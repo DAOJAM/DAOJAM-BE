@@ -107,6 +107,30 @@ class MineTokenController extends Controller {
     };
   }
 
+  // 保存 live
+  async saveLives() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { lives } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.saveLives(ctx.user.id, tokenId, lives);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+
+  // 获取lives
+  async getLives() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const result = await ctx.service.token.mineToken.getLives(tokenId);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+
   // 增发
   async mint() {
     const ctx = this.ctx;

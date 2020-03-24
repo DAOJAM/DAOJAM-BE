@@ -267,6 +267,10 @@ module.exports = app => {
   router.get('/minetoken/:id/resources', passport.verify, controller.mineToken.getResources);
   router.put('/minetoken/:id/resources', passport.authorize, controller.mineToken.saveResources);
   router.get('/minetoken/:id/related', passport.verify, controller.mineToken.getRelated);
+  // token live
+  router.get('/minetoken/:id/lives', passport.verify, controller.mineToken.getLives);
+  router.put('/minetoken/:id/lives', passport.authorize, controller.mineToken.saveLives);
+
 
   // -------------------------------- token display API --------------------------------
   // 查询用户发行的token持仓用户list
