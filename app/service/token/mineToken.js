@@ -50,7 +50,7 @@ class MineTokenService extends Service {
       [ userId, name, symbol, decimals, create_time, logo, brief, introduction, userId, symbol ]);
     await this.emitIssueEvent(userId, result.insertId, null, txHash);
     await this._mint(result.insertId, userId, initialSupply, null, null);
-    await this.service.tokenCircle.api.addTokenProfile(result.insertId, name, symbol, userId, 'NULL');
+    // await this.service.tokenCircle.api.addTokenProfile(result.insertId, name, symbol, userId, 'NULL');
     // es里添加新加入的fan票
     await this.service.search.importToken({
       id: result.insertId,

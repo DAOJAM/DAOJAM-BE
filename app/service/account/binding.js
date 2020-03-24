@@ -23,7 +23,7 @@ class AccountBindingService extends Service {
       this.logger.info('Service: AccountBinding:: Account Existence');
       return false;
     }
-    if (platform === 'telegram') await this.service.tokenCircle.updateUser(uid, { telegramUid: account });
+    // if (platform === 'telegram') await this.service.tokenCircle.api.updateUser(uid, { telegramUid: account });
     const now = moment().format('YYYY-MM-DD HH:mm:ss');
     let result = null;
     if (tran) {
@@ -113,7 +113,7 @@ class AccountBindingService extends Service {
       // 影响行数都是1的话，直接提交，否则回滚
       if (del1.affectedRows === 1 && del2.affectedRows === 1) {
         await tran.commit();
-        if (platform === 'telegram') await this.service.tokenCircle.updateUser(uid, { telegramUid: null });
+        // if (platform === 'telegram') await this.service.tokenCircle.api.updateUser(uid, { telegramUid: null });
         return 0;
       }
       await tran.rollback();
