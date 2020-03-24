@@ -107,7 +107,7 @@ class MineTokenController extends Controller {
     };
   }
 
-  // 保存 live
+  // 保存 lives
   async saveLives() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
@@ -125,6 +125,30 @@ class MineTokenController extends Controller {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
     const result = await ctx.service.token.mineToken.getLives(tokenId);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+
+  // 保存 news
+  async saveNews() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { news } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.saveNews(ctx.user.id, tokenId, news);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+
+  // 获取 news
+  async getNews() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const result = await ctx.service.token.mineToken.getNews(tokenId);
     ctx.body = {
       ...ctx.msg.success,
       data: result,

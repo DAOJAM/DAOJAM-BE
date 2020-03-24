@@ -270,6 +270,9 @@ module.exports = app => {
   // token live
   router.get('/minetoken/:id/lives', passport.verify, controller.mineToken.getLives);
   router.put('/minetoken/:id/lives', passport.authorize, controller.mineToken.saveLives);
+  // token news
+  router.get('/minetoken/:id/news', passport.verify, controller.mineToken.getNews);
+  router.put('/minetoken/:id/news', passport.authorize, controller.mineToken.saveNews);
 
 
   // -------------------------------- token display API --------------------------------
