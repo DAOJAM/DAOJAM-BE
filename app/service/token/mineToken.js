@@ -189,6 +189,51 @@ class MineTokenService extends Service {
     };
   }
 
+
+  // 保存Live
+  async saveLives(userId, tokenId, lives) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return -1;
+    }
+
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      await conn.query('DELETE FROM minetoken_lives WHERE token_id = ?;', [ tokenId ]);
+
+      for (const live of lives) {
+        await conn.insert('minetoken_lives', {
+          token_id: tokenId,
+          uid: live.uid,
+          content: live.content,
+          create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+        });
+      }
+
+      await conn.commit();
+      return 0;
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+
+  // 获取lives
+  async getLives(tokenId) {
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      const result = await conn.query('SELECT u.nickname, u.username, m.content, m.create_time FROM `users` u, `minetoken_lives` m WHERE m.token_id = ? AND u.id = m.uid;', [ tokenId ]);
+      await conn.commit();
+      return result;
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+
+
   async hasCreatePermission(userId) {
     const user = await this.service.user.get(userId);
     const hasMineTokenPermission = consts.userStatus.hasMineTokenPermission;
