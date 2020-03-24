@@ -21,7 +21,7 @@ class MineTokenService extends Service {
   }
 
   // 作者创建一个token
-  async create(userId, name, symbol, initialSupply, decimals, logo, brief, introduction, txHash, cover) {
+  async create(userId, name, symbol, initialSupply, decimals, logo, brief, introduction, txHash, cover, repo) {
     let token = await this.getByUserId(userId);
     if (token) {
       return -1;
@@ -42,12 +42,12 @@ class MineTokenService extends Service {
       return -2;
     }
 
-    const sql = 'INSERT INTO minetokens(uid, name, symbol, decimals, total_supply, create_time, status, logo, brief, introduction, cover) '
+    const sql = 'INSERT INTO minetokens(uid, name, symbol, decimals, total_supply, create_time, status, logo, brief, introduction, cover, repo) '
       //                      ⬇️⬅️ 故意把 Status 设为 0，合约部署成功了 worker 会把它设置回 1 (active)
-      + 'SELECT ?,?,?,?,0,?,0,?,?,?,? FROM DUAL WHERE NOT EXISTS(SELECT 1 FROM minetokens WHERE uid=? OR symbol=?);';
+      + 'SELECT ?,?,?,?,0,?,0,?,?,?,?,? FROM DUAL WHERE NOT EXISTS(SELECT 1 FROM minetokens WHERE uid=? OR symbol=?);';
     const create_time = moment().format('YYYY-MM-DD HH:mm:ss');
     const result = await this.app.mysql.query(sql,
-      [ userId, name, symbol, decimals, create_time, logo, brief, introduction, cover, userId, symbol ]);
+      [ userId, name, symbol, decimals, create_time, logo, brief, introduction, cover, repo, userId, symbol ]);
     await this.emitIssueEvent(userId, result.insertId, null, txHash);
     await this._mint(result.insertId, userId, initialSupply, null, null);
     await this.service.tokenCircle.api.addTokenProfile(result.insertId, name, symbol, userId, 'NULL');
@@ -72,13 +72,14 @@ class MineTokenService extends Service {
   }
 
   // 更新粉丝币信息
-  async update(userId, tokenId, name, logo, brief, introduction, cover) {
+  async update(userId, tokenId, name, logo, brief, introduction, cover, repo) {
     const row = {};
     row.name = name;
     row.logo = logo;
     row.brief = brief;
     row.introduction = introduction;
     row.cover = cover;
+    row.repo = repo;
 
     const options = {
       where: { uid: userId, id: tokenId },
