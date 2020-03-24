@@ -224,7 +224,7 @@ class MineTokenService extends Service {
   async getLives(tokenId) {
     const conn = await this.app.mysql.beginTransaction();
     try {
-      const result = await conn.query('SELECT u.nickname, u.username, m.content, m.create_time FROM `users` u, `minetoken_lives` m WHERE m.token_id = ? AND u.id = m.uid;', [ tokenId ]);
+      const result = await conn.query('SELECT u.nickname, u.username, u.avatar,  m.uid, m.title, m.content, m.create_time FROM `users` u, `minetoken_lives` m WHERE m.token_id = ? AND u.id = m.uid;', [ tokenId ]);
       await conn.commit();
       return result;
     } catch (e) {
@@ -234,6 +234,48 @@ class MineTokenService extends Service {
     }
   }
 
+  // 保存 news
+  async saveNews(userId, tokenId, news) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return -1;
+    }
+
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      await conn.query('DELETE FROM minetoken_news WHERE token_id = ?;', [ tokenId ]);
+
+      for (const newVal of news) {
+        await conn.insert('minetoken_news', {
+          token_id: tokenId,
+          title: newVal.title,
+          content: newVal.content,
+          create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+        });
+      }
+
+      await conn.commit();
+      return 0;
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+
+  // 获取news
+  async getNews(tokenId) {
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      const result = await conn.query('SELECT m.title, m.content, m.create_time FROM `minetoken_news` m WHERE m.token_id = ?;', [ tokenId ]);
+      await conn.commit();
+      return result;
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
 
   async hasCreatePermission(userId) {
     const user = await this.service.user.get(userId);
