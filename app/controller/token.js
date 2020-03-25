@@ -133,6 +133,21 @@ class TokenController extends Controller {
       data: result,
     };
   }
+  // 粉丝币分页列表
+  async getTokenBookmarks() {
+    const ctx = this.ctx;
+    const { pagesize = 10, page = 1, search = '', sort = 'general' } = this.ctx.query;
+    const result = await ctx.service.exchange.getAllToken(parseInt(page), parseInt(pagesize), search, sort, ctx.user.id);
+    if (result === false) {
+      ctx.status = 400;
+      ctx.body = ctx.msg.paramsError;
+    }
+
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
   async getTokenBySymbol() {
     const { ctx } = this;
     const { symbol } = ctx.query;

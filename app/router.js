@@ -287,6 +287,7 @@ module.exports = app => {
   // 所有的token 分页
   router.get('/token/all', passport.verify, controller.token.allToken);
   router.get('/token/symbol', passport.verify, controller.token.getTokenBySymbol);
+  router.get('/token/all/bookmarks', passport.authorize, controller.token.getTokenBookmarks);
 
   router.get('/token/:id/balances', passport.verify, controller.token.balances);
   router.get('/token/:id/transactions', passport.verify, controller.token.transactions);

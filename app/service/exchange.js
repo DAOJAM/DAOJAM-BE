@@ -203,7 +203,7 @@ class ExchangeService extends Service {
     return result[0] || null;
   }
   // 所有的token
-  async getAllToken(page = 1, pagesize = 20, search = '', sort = 'general') {
+  async getAllToken(page = 1, pagesize = 20, search = '', sort = 'general', bookmarkUid = 0) {
     let sqlOrder = null;
     switch (sort) {
       case 'general':
@@ -259,6 +259,15 @@ class ExchangeService extends Service {
         return false;
     }
 
+    let filterBookmarks =  ['', '']
+    if (bookmarkUid) {
+      if (Number.isNaN(bookmarkUid)) return false;
+      filterBookmarks = [
+        ' JOIN minetoken_bookmarks b ON b.token_id = t1.id AND b.uid = :bookmarkUid',
+        ' JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :bookmarkUid'
+      ]
+    }
+
     let sql, parameters;
     if (search === '') {
       sql = `SELECT t1.*, t2.username, t2.nickname, t2.avatar, t4.amount, ifnull(t6.amount, 0) AS liquidity, ifnull(t7.amount, 0) AS exchange_amount
@@ -275,12 +284,15 @@ class ExchangeService extends Service {
             WHERE acl.create_time > DATE_SUB(NOW(), INTERVAL 1 DAY)
             GROUP BY token_id
           ) t7 ON t7.token_id = t1.id `
+        + filterBookmarks[0]
         + sqlOrder
         + ' LIMIT :offset, :limit;'
-        + 'SELECT count(1) as count FROM mineTokens;';
+        + 'SELECT count(1) as count FROM mineTokens c1'
+        + filterBookmarks[1];
       parameters = {
         offset: (page - 1) * pagesize,
         limit: pagesize,
+        bookmarkUid,
       };
     } else {
       sql = `SELECT t1.*, t2.username, t2.nickname, t2.avatar, t4.amount, t6.amount AS liquidity, t7.amount AS exchange_amount
