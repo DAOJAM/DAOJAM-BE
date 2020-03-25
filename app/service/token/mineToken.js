@@ -221,12 +221,33 @@ class MineTokenService extends Service {
   }
 
   // 获取lives
-  async getLives(tokenId) {
+  async getLives(tokenId, page= 1, pagesize= 20) {
     const conn = await this.app.mysql.beginTransaction();
     try {
-      const result = await conn.query('SELECT u.nickname, u.username, u.avatar,  m.uid, m.title, m.content, m.create_time FROM `users` u, `minetoken_lives` m WHERE m.token_id = ? AND u.id = m.uid;', [ tokenId ]);
+      let result = null;
+      if (typeof page === 'string') page = parseInt(page);
+      if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
+      // 如果 -1 说明要查全部数据
+      let sql = `SELECT u.nickname, u.username, u.avatar, m.uid, m.title, m.content, m.create_time 
+          FROM users u, minetoken_lives m 
+          WHERE m.token_id = ? AND u.id = m.uid`;
+
+      if (pagesize === -1) {
+        sql += ';';
+        result = await conn.query(sql, [ tokenId ]);
+      } else {
+        // 前面有空格
+        sql += ' LIMIT ?, ?;';
+        result = await conn.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
+      }
+
+      // 统计 count
+      const countResult = await conn.query(`SELECT COUNT(1) AS count FROM minetoken_lives;`);
       await conn.commit();
-      return result;
+      return {
+        count: countResult[0].count || 0,
+        list: result,
+      };
     } catch (e) {
       await conn.rollback();
       this.ctx.logger.error(e);
@@ -264,12 +285,32 @@ class MineTokenService extends Service {
   }
 
   // 获取news
-  async getNews(tokenId) {
+  async getNews(tokenId, page= 1, pagesize= 20) {
     const conn = await this.app.mysql.beginTransaction();
     try {
-      const result = await conn.query('SELECT m.title, m.content, m.create_time FROM `minetoken_news` m WHERE m.token_id = ?;', [ tokenId ]);
+      let result = null;
+      if (typeof page === 'string') page = parseInt(page);
+      if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
+      // 如果 -1 说明要查全部数据
+      let sql = `SELECT m.title, m.content, m.create_time 
+        FROM minetoken_news m 
+        WHERE m.token_id = ?`;
+
+      if (pagesize === -1) {
+        sql += ';';
+        result = await conn.query(sql, [ tokenId ]);
+      } else {
+        // 前面有空格
+        sql += ' LIMIT ?, ?;';
+        result = await conn.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
+      }
+      // 统计 count
+      const countResult = await conn.query(`SELECT COUNT(1) AS count FROM minetoken_news;`);
       await conn.commit();
-      return result;
+      return {
+        count: countResult[0].count || 0,
+        list: result,
+      };
     } catch (e) {
       await conn.rollback();
       this.ctx.logger.error(e);

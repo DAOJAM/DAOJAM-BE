@@ -124,7 +124,8 @@ class MineTokenController extends Controller {
   async getLives() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
-    const result = await ctx.service.token.mineToken.getLives(tokenId);
+    const { page, pagesize } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.getLives(tokenId, page, pagesize);
     ctx.body = {
       ...ctx.msg.success,
       data: result,
@@ -148,7 +149,8 @@ class MineTokenController extends Controller {
   async getNews() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
-    const result = await ctx.service.token.mineToken.getNews(tokenId);
+    const { page, pagesize } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.getNews(tokenId, page, pagesize);
     ctx.body = {
       ...ctx.msg.success,
       data: result,
