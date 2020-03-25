@@ -858,6 +858,57 @@ class MineTokenService extends Service {
     }
     return result;
   }
+
+  async getBookmarkStatus(userId, tokenId) {
+    const res = await this.app.mysql.get('minetoken_bookmarks', {
+      uid: userId,
+      token_id: tokenId,
+    });
+    return res;
+  }
+
+  async addBookmark(userId, tokenId) {
+    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [tokenId]))[0];
+    if (!existence) {
+      return null;
+    }
+
+    const { affectedRows } = await this.app.mysql.query('INSERT IGNORE minetoken_bookmarks VALUES(?, ?, ?);', [userId, tokenId, moment().format('YYYY-MM-DD HH:mm:ss')]);
+
+    return affectedRows === 1;
+  }
+
+  async removeBookmark(userId, tokenId) {
+    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [tokenId]))[0];
+    if (!existence) {
+      return null;
+    }
+
+    const { affectedRows } = await this.app.mysql.delete('minetoken_bookmarks', {
+      uid: userId,
+      token_id: tokenId,
+    });
+
+    return affectedRows === 1;
+  }
+
+  async getBookmarkByTokenIds(userId, tokenIds = []) {
+    if (tokenIds === null || tokenIds.length <= 0) {
+      return [];
+    }
+    const sql = `SELECT * FROM minetoken_bookmarks
+      WHERE uid = :userId AND token_id IN (:tokenIds)
+      ORDER BY FIELD(token_id, :tokenIds)`;
+
+    const list = await this.app.mysql.query(
+      sql,
+      { 
+        userId,
+        tokenIds
+      }
+    );
+    return list;
+  }
 }
 
 module.exports = MineTokenService;
