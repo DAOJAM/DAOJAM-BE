@@ -4,7 +4,7 @@ services:
     restart: always
     build: .
     hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-    command: npm start
+    command: npm run serve
     volumes:
       - /usr/local/daojam-prod/backend-config/config.local.js:/usr/src/app/config/config.default.js
       - /usr/local/daojam-prod/backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
