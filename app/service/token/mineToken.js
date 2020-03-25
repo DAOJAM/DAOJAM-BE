@@ -50,7 +50,7 @@ class MineTokenService extends Service {
       [ userId, name, symbol, decimals, create_time, logo, brief, introduction, cover, repo, userId, symbol ]);
     await this.emitIssueEvent(userId, result.insertId, null, txHash);
     await this._mint(result.insertId, userId, initialSupply, null, null);
-    await this.service.tokenCircle.api.addTokenProfile(result.insertId, name, symbol, userId, 'NULL');
+    // await this.service.tokenCircle.api.addTokenProfile(result.insertId, name, symbol, userId, 'NULL');
     // es里添加新加入的fan票
     await this.service.search.importToken({
       id: result.insertId,
@@ -987,6 +987,57 @@ class MineTokenService extends Service {
       result[res[i]] = res[i + 1];
     }
     return result;
+  }
+
+  async getBookmarkStatus(userId, tokenId) {
+    const res = await this.app.mysql.get('minetoken_bookmarks', {
+      uid: userId,
+      token_id: tokenId,
+    });
+    return res;
+  }
+
+  async addBookmark(userId, tokenId) {
+    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [tokenId]))[0];
+    if (!existence) {
+      return null;
+    }
+
+    const { affectedRows } = await this.app.mysql.query('INSERT IGNORE minetoken_bookmarks VALUES(?, ?, ?);', [userId, tokenId, moment().format('YYYY-MM-DD HH:mm:ss')]);
+
+    return affectedRows === 1;
+  }
+
+  async removeBookmark(userId, tokenId) {
+    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [tokenId]))[0];
+    if (!existence) {
+      return null;
+    }
+
+    const { affectedRows } = await this.app.mysql.delete('minetoken_bookmarks', {
+      uid: userId,
+      token_id: tokenId,
+    });
+
+    return affectedRows === 1;
+  }
+
+  async getBookmarkByTokenIds(userId, tokenIds = []) {
+    if (tokenIds === null || tokenIds.length <= 0) {
+      return [];
+    }
+    const sql = `SELECT * FROM minetoken_bookmarks
+      WHERE uid = :userId AND token_id IN (:tokenIds)
+      ORDER BY FIELD(token_id, :tokenIds)`;
+
+    const list = await this.app.mysql.query(
+      sql,
+      { 
+        userId,
+        tokenIds
+      }
+    );
+    return list;
   }
 }
 

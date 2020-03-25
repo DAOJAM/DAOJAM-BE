@@ -1,36 +1,8 @@
-# Matataki 后端
+# DAOJam 后端
 
-## 目录
+## Database related
 
-```bash
-.
-├── Dockerfile
-├── README.md
-├── app
-├── app.js
-├── appveyor.yml
-├── config
-├── db_dump.sql
-├── db_memo.sql
-├── doc.md
-├── docker-compose.yml
-├── docs
-├── ipfs-backup.sh
-├── jsconfig.json
-├── logs
-├── node_modules
-├── package-lock.json
-├── package.json
-├── run
-├── scripts
-├── server-deployment.md
-├── smartsignature
-├── test
-├── typings
-├── update_prod
-├── uploads
-└── yarn.lock
-```
+[How to update database parameters in AWS Lightsail Database](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-updating-database-parameters)
 
 ## QuickStart
 
