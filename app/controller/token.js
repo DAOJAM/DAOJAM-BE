@@ -318,6 +318,73 @@ class TokenController extends Controller {
       },
     };
   }
+
+  /** ******token收藏****** */
+
+  async getBookmarkStatus() {
+    const ctx = this.ctx;
+    const id = parseInt(ctx.params.id);
+
+    if (Number.isNaN(id)) {
+      ctx.body = ctx.msg.paramsError;
+      return;
+    }
+
+    const result = await ctx.service.token.mineToken.getBookmarkStatus(ctx.user.id, id);
+
+    ctx.body = ctx.msg.success;
+    ctx.body.data = result;
+  }
+
+  async addBookmark() {
+    const ctx = this.ctx;
+    const id = parseInt(ctx.params.id);
+
+    if (Number.isNaN(id)) {
+      ctx.body = ctx.msg.paramsError;
+      return;
+    }
+
+    const result = await ctx.service.token.mineToken.addBookmark(ctx.user.id, id);
+
+    if (result === null) {
+      ctx.body = ctx.msg.postNotFound;
+      return;
+    }
+
+    ctx.body = result ? ctx.msg.success : ctx.msg.postBookmarked;
+  }
+
+  async removeBookmark() {
+    const ctx = this.ctx;
+    const id = parseInt(ctx.params.id);
+
+    if (Number.isNaN(id)) {
+      ctx.body = ctx.msg.paramsError;
+      return;
+    }
+
+    const result = await ctx.service.token.mineToken.removeBookmark(ctx.user.id, id);
+
+    if (result === null) {
+      ctx.body = ctx.msg.postNotFound;
+      return;
+    }
+
+    ctx.body = result ? ctx.msg.success : ctx.msg.postNotBookmarked;
+  }
+
+  async getBookmarkByTokenIds() {
+    const ctx = this.ctx;
+    const ids = JSON.parse(ctx.query.ids);
+
+    const result = await ctx.service.token.mineToken.getBookmarkByTokenIds(ctx.user.id, ids);
+
+    ctx.body = ctx.msg.success;
+    ctx.body.data = result;
+  }
+
+  /**********************/
 }
 
 module.exports = TokenController;
