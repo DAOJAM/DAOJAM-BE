@@ -104,6 +104,14 @@ module.exports = app => {
   router.post('/post/:id/bookmark', passport.authorize, controller.post.addBookmark);
   // 取消收藏文章
   router.delete('/post/:id/bookmark', passport.authorize, controller.post.removeBookmark);
+  // 是否收藏了token
+  router.get('/token/:id/bookmark', passport.authorize, controller.token.getBookmarkStatus);
+  // 收藏token
+  router.post('/token/:id/bookmark', passport.authorize, controller.token.addBookmark);
+  // 取消收藏token
+  router.delete('/token/:id/bookmark', passport.authorize, controller.token.removeBookmark);
+  // 根据tokenIds获取收藏状态
+  router.get('/token/bookmark/ids', passport.authorize, controller.token.getBookmarkByTokenIds);
 
   // -------------------------------- 标签系统 --------------------------------
   // 标签列表
