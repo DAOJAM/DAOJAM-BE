@@ -4,7 +4,7 @@ services:
     restart: always
     build: .
     hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-    command: npm run dev
+    command: npm start
     volumes:
       - /usr/local/daojam-prod/backend-config/config.local.js:/usr/src/app/config/config.default.js
       - /usr/local/daojam-prod/backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
@@ -13,19 +13,6 @@ services:
     networks:
       overlay:
   
-  prod2:
-    restart: always
-    build: .
-    hostname: "{{.Service.Name}}-{{.Task.Slot}}"
-    command: npm run dev
-    volumes:
-      - /usr/local/daojam-prod/backend-config/config.local.js:/usr/src/app/config/config.default.js
-      - /usr/local/daojam-prod/backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
-    ports:
-      - 7654:7001
-    networks:
-      overlay:
-
   test:
     restart: always
     build: .
