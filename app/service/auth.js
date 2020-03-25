@@ -263,11 +263,11 @@ class AuthService extends Service {
         );
 
         currentUser = await this.service.account.binding.get2({ username, platform });
-        if (platform === 'telegram') { // update telegramUid
-          await this.service.tokenCircle.api.updateUser(
-            currentUser.id, { telegramUid: username }
-          );
-        }
+        // if (platform === 'telegram') { // update telegramUid
+        //   await this.service.tokenCircle.api.updateUser(
+        //     currentUser.id, { telegramUid: username }
+        //   );
+        // }
         // currentUser = await this.app.mysql.get('users', { username, platform });
       }
 
@@ -592,9 +592,9 @@ class AuthService extends Service {
       // 检测用户有没有托管的以太坊私钥，没有就生成
       const wallet = await this.service.account.hosting.create(createAccount.insertId);
 
-      await this.service.tokenCircle.api.addUserProfile(
-        createAccount.insertId, username, wallet
-      );
+      // await this.service.tokenCircle.api.addUserProfile(
+      //   createAccount.insertId, username, wallet
+      // );
 
       // 插入ES
       await this.service.search.importUser(createAccount.insertId);
