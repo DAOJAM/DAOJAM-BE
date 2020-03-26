@@ -6,7 +6,7 @@ class MineTokenController extends Controller {
   // 创建
   async create() {
     const ctx = this.ctx;
-    const { name, symbol, decimals = 4, logo, brief, introduction, initialSupply, cover } = this.ctx.request.body;
+    const { name, symbol, decimals = 4, logo, brief, introduction, initialSupply, cover, repo } = this.ctx.request.body;
     // 编辑Fan票的时候限制简介字数不超过50字 后端也有字数限制
     if (brief && brief.length > 50) {
       ctx.body = ctx.msg.failure;
@@ -23,7 +23,7 @@ class MineTokenController extends Controller {
         ctx.body = ctx.msg.failure;
         ctx.body.data = { error };
       }
-      const result = await ctx.service.token.mineToken.create(ctx.user.id, name, symbol, initialSupply, decimals, logo, brief, introduction, txHash, cover); // decimals默认4位
+      const result = await ctx.service.token.mineToken.create(ctx.user.id, name, symbol, initialSupply, decimals, logo, brief, introduction, txHash, cover, repo); // decimals默认4位
       if (result === -1) {
         ctx.body = ctx.msg.tokenAlreadyCreated;
       } else if (result === -2) {
@@ -44,13 +44,13 @@ class MineTokenController extends Controller {
   async update() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
-    const { name, logo, brief, introduction, cover } = ctx.request.body;
+    const { name, logo, brief, introduction, cover, repo } = ctx.request.body;
 
     // 编辑Fan票的时候限制简介字数不超过50字 后端也有字数限制
     if (brief && brief.length > 50) {
       ctx.body = ctx.msg.failure;
     } else { // 好耶 字数没有超限
-      const result = await ctx.service.token.mineToken.update(ctx.user.id, tokenId, name, logo, brief, introduction, cover);
+      const result = await ctx.service.token.mineToken.update(ctx.user.id, tokenId, name, logo, brief, introduction, cover, repo);
       if (result) {
         ctx.body = ctx.msg.success;
       } else {
@@ -105,6 +105,107 @@ class MineTokenController extends Controller {
       ...ctx.msg.success,
       data: result,
     };
+  }
+
+  // 获取lives
+  async getLives() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { page, pagesize, order } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.getLives(tokenId, page, pagesize, order);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  // 创建 live
+  async createLive() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { live } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.createLive(ctx.user.id, tokenId, live);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 更新 live
+  async updateLive() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { live } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.updateLive(ctx.user.id, tokenId, live);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 删除 live
+  async deleteLive() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { live } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.deleteLive(ctx.user.id, tokenId, live);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 获取 news
+  async getNews() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { page, pagesize, order } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.getNews(tokenId, page, pagesize, order);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  // 创建 news
+  async createNew() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { news } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.createNew(ctx.user.id, tokenId, news);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 更新 news
+  async updateNew() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { news } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.updateNew(ctx.user.id, tokenId, news);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 删除 news
+  async deleteNew() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { news } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.deleteNew(ctx.user.id, tokenId, news);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
   }
 
   // 增发
