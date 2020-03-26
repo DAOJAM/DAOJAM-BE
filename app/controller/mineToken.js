@@ -107,54 +107,105 @@ class MineTokenController extends Controller {
     };
   }
 
-  // 保存 lives
-  async saveLives() {
-    const ctx = this.ctx;
-    const tokenId = parseInt(ctx.params.id);
-    const { lives } = this.ctx.request.body;
-    const result = await ctx.service.token.mineToken.saveLives(ctx.user.id, tokenId, lives);
-    if (result === 0) {
-      ctx.body = ctx.msg.success;
-    } else {
-      ctx.body = ctx.msg.failure;
-    }
-  }
-
   // 获取lives
   async getLives() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
-    const { page, pagesize } = this.ctx.query;
-    const result = await ctx.service.token.mineToken.getLives(tokenId, page, pagesize);
+    const { page, pagesize, order } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.getLives(tokenId, page, pagesize, order);
     ctx.body = {
       ...ctx.msg.success,
       data: result,
     };
   }
-
-  // 保存 news
-  async saveNews() {
+  // 创建 live
+  async createLive() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
-    const { news } = this.ctx.request.body;
-    const result = await ctx.service.token.mineToken.saveNews(ctx.user.id, tokenId, news);
+    const { live } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.createLive(ctx.user.id, tokenId, live);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 更新 live
+  async updateLive() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { live } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.updateLive(ctx.user.id, tokenId, live);
     if (result === 0) {
       ctx.body = ctx.msg.success;
     } else {
       ctx.body = ctx.msg.failure;
     }
   }
-
+  // 删除 live
+  async deleteLive() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { live } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.deleteLive(ctx.user.id, tokenId, live);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
   // 获取 news
   async getNews() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
-    const { page, pagesize } = this.ctx.query;
-    const result = await ctx.service.token.mineToken.getNews(tokenId, page, pagesize);
+    const { page, pagesize, order } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.getNews(tokenId, page, pagesize, order);
     ctx.body = {
       ...ctx.msg.success,
       data: result,
     };
+  }
+  // 创建 news
+  async createNew() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { news } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.createNew(ctx.user.id, tokenId, news);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 更新 news
+  async updateNew() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { news } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.updateNew(ctx.user.id, tokenId, news);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 删除 news
+  async deleteNew() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { news } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.deleteNew(ctx.user.id, tokenId, news);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
   }
 
   // 增发

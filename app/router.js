@@ -268,15 +268,26 @@ module.exports = app => {
   router.put('/minetoken/:id/resources', passport.authorize, controller.mineToken.saveResources);
   router.get('/minetoken/:id/related', passport.verify, controller.mineToken.getRelated);
   // token live
+  // 获取 live
   router.get('/minetoken/:id/lives', passport.verify, controller.mineToken.getLives);
-  router.put('/minetoken/:id/lives', passport.authorize, controller.mineToken.saveLives);
+  // 创建 live
+  router.post('/minetoken/:id/lives', passport.authorize, controller.mineToken.createLive);
+  // 更新 live
+  router.put('/minetoken/:id/lives', passport.authorize, controller.mineToken.updateLive);
+  // 删除 live
+  router.delete('/minetoken/:id/lives', passport.authorize, controller.mineToken.deleteLive);
   // token news
   router.get('/minetoken/:id/news', passport.verify, controller.mineToken.getNews);
-  router.put('/minetoken/:id/news', passport.authorize, controller.mineToken.saveNews);
+  // 创建 news
+  router.post('/minetoken/:id/news', passport.authorize, controller.mineToken.createNew);
+  // 更新 news
+  router.put('/minetoken/:id/news', passport.authorize, controller.mineToken.updateNew);
+  // 删除 news
+  router.delete('/minetoken/:id/news', passport.authorize, controller.mineToken.deleteNew);
 
 
   // -------------------------------- token display API --------------------------------
-  // 查询用户发行的token持仓用户list
+  // 查询用户发行的token持仓用户listsaveLives
   router.get('/token/userlist', passport.authorize, controller.token.userList);
   // router.get('/token/usertokenflow', passport.verify, controller.token.userTokenFlow);
   // 用户持仓token list
