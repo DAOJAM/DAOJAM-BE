@@ -190,47 +190,22 @@ class MineTokenService extends Service {
   }
 
 
-  // 保存Live
-  async saveLives(userId, tokenId, lives) {
-    const token = await this.getByUserId(userId);
-    if (token.id !== tokenId) {
-      return -1;
-    }
-
-    const conn = await this.app.mysql.beginTransaction();
-    try {
-      await conn.query('DELETE FROM minetoken_lives WHERE token_id = ?;', [ tokenId ]);
-
-      for (const live of lives) {
-        await conn.insert('minetoken_lives', {
-          token_id: tokenId,
-          uid: live.uid,
-          title: live.title,
-          content: live.content,
-          create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
-        });
-      }
-
-      await conn.commit();
-      return 0;
-    } catch (e) {
-      await conn.rollback();
-      this.ctx.logger.error(e);
-      return -1;
-    }
-  }
-
   // 获取lives
-  async getLives(tokenId, page= 1, pagesize= 20) {
+  async getLives(tokenId, page= 1, pagesize= 20, order = '') {
     const conn = await this.app.mysql.beginTransaction();
     try {
       let result = null;
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
       // 如果 -1 说明要查全部数据
-      let sql = `SELECT u.nickname, u.username, u.avatar, m.uid, m.title, m.content, m.create_time 
+      let sql = `SELECT u.nickname, u.username, u.avatar, m.id, m.uid, m.title, m.content, m.create_time 
           FROM users u, minetoken_lives m 
           WHERE m.token_id = ? AND u.id = m.uid`;
+
+      // oder by DESC/ASC 其他参数不允许传递
+      if (order === 'desc' || order === 'asc') {
+        sql += ` ORDER BY m.create_time ${order.toUpperCase()}`
+      }
 
       if (pagesize === -1) {
         sql += ';';
@@ -254,47 +229,104 @@ class MineTokenService extends Service {
       return -1;
     }
   }
+  // 创建 live
+  async createLive(userId, tokenId, live) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return {
+        code: -1,
+      }
+    }
 
-  // 保存 news
-  async saveNews(userId, tokenId, news) {
+    try {
+      // 创建一条live
+      const insertResult = await this.app.mysql.insert('minetoken_lives', {
+        token_id: tokenId,
+        uid: live.uid,
+        title: live.title,
+        content: live.content,
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+      });
+      // 返回 id
+      return {
+        code: 0,
+        data: {
+          id: insertResult.insertId
+        }
+      }
+    } catch (e) {
+      this.ctx.logger.error(`createLive error: ${e}`);
+      return {
+        code: -1,
+      }
+    }
+  }
+  // 更新 live
+  async updateLive(userId, tokenId, live) {
     const token = await this.getByUserId(userId);
     if (token.id !== tokenId) {
       return -1;
     }
 
-    const conn = await this.app.mysql.beginTransaction();
     try {
-      await conn.query('DELETE FROM minetoken_news WHERE token_id = ?;', [ tokenId ]);
+      // 更新一条live
+      const updateResult = await this.app.mysql.update('minetoken_lives', {
+        id: live.id,
+        token_id: tokenId,
+        uid: live.uid,
+        title: live.title,
+        content: live.content,
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+      });
 
-      for (const newVal of news) {
-        await conn.insert('minetoken_news', {
-          token_id: tokenId,
-          title: newVal.title,
-          content: newVal.content,
-          create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
-        });
+      // 判断是否更新成功
+      if (updateResult.affectedRows === 1) {
+        return 0;
+      } else {
+        return -1;
       }
 
-      await conn.commit();
+    } catch (e) {
+      this.ctx.logger.error(`updateLive error: ${e}`);
+      return -1;
+    }
+  }
+  // 删除 live
+  async deleteLive(userId, tokenId, live) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return -1;
+    }
+
+    try {
+      await this.app.mysql.delete('minetoken_lives', {
+        id: live.id,
+      });
       return 0;
     } catch (e) {
-      await conn.rollback();
       this.ctx.logger.error(e);
       return -1;
     }
   }
 
+
+
   // 获取news
-  async getNews(tokenId, page= 1, pagesize= 20) {
+  async getNews(tokenId, page= 1, pagesize= 20, order='') {
     const conn = await this.app.mysql.beginTransaction();
     try {
       let result = null;
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
       // 如果 -1 说明要查全部数据
-      let sql = `SELECT m.title, m.content, m.create_time 
+      let sql = `SELECT m.id, m.title, m.content, m.create_time 
         FROM minetoken_news m 
         WHERE m.token_id = ?`;
+
+      // oder by DESC/ASC 其他参数不允许传递
+      if (order === 'desc' || order === 'asc') {
+        sql += ` ORDER BY m.create_time ${order.toUpperCase()}`
+      }
 
       if (pagesize === -1) {
         sql += ';';
@@ -313,6 +345,83 @@ class MineTokenService extends Service {
       };
     } catch (e) {
       await conn.rollback();
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+  // 创建 news
+  async createNew(userId, tokenId, news) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return {
+        code: -1,
+      }
+    }
+
+    try {
+      // 创建一条live
+      const insertResult = await this.app.mysql.insert('minetoken_news', {
+        token_id: tokenId,
+        title: news.title,
+        content: news.content,
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+      });
+      // 返回 id
+      return {
+        code: 0,
+        data: {
+          id: insertResult.insertId
+        }
+      }
+    } catch (e) {
+      this.ctx.logger.error(`createNew error: ${e}`);
+      return {
+        code: -1,
+      }
+    }
+  }
+  // 更新 news
+  async updateNew(userId, tokenId, news) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return -1;
+    }
+
+    try {
+      // 更新一条live
+      const updateResult = await this.app.mysql.update('minetoken_news', {
+        id: news.id,
+        token_id: tokenId,
+        title: news.title,
+        content: news.content,
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+      });
+
+      // 判断是否更新成功
+      if (updateResult.affectedRows === 1) {
+        return 0;
+      } else {
+        return -1;
+      }
+
+    } catch (e) {
+      this.ctx.logger.error(`updateNew error: ${e}`);
+      return -1;
+    }
+  }
+  // 删除 news
+  async deleteNew(userId, tokenId, news) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return -1;
+    }
+
+    try {
+      await this.app.mysql.delete('minetoken_news', {
+        id: news.id,
+      });
+      return 0;
+    } catch (e) {
       this.ctx.logger.error(e);
       return -1;
     }
@@ -1032,7 +1141,7 @@ class MineTokenService extends Service {
 
     const list = await this.app.mysql.query(
       sql,
-      { 
+      {
         userId,
         tokenIds
       }
