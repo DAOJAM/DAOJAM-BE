@@ -163,41 +163,47 @@ async function catcherUser(start = 0, end = null) {
 
   // 有start和end的话， 就从他们开始吧！
   for (let index = start; index < (end ? end : userCountQuery[0][0].count); index += 1) {
-    console.log('---- ---- ---- ---- ---- ---- ---- ----');
-    console.log(`Current index ${index}`);
-    // ..
-    userDetailQuery = await mysqlConnection.execute(
-      'SELECT id, create_time, username, nickname FROM users ORDER BY id DESC LIMIT ?, 1;',
-      [ index ]
-    );
-    currentId = userDetailQuery[0][0].id;
+    try {
+      console.log('---- ---- ---- ---- ---- ---- ---- ----');
+      console.log(`Current user index ${index}`);
+      // ..
 
-    // ..
-    elaQuery = await elaClient.search({
-      index: config.indexUsers,
-      q: `id:${currentId}`,
-    });
-    if (elaQuery.body.hits.hits.length !== 0) {
-      console.log(`Current user id ${currentId} already added...`);
-      continue;
-    }
-    console.log(`${userDetailQuery[0][0].id} ${userDetailQuery[0][0].username} ${userDetailQuery[0][0].nickname}`);
+      userDetailQuery = await mysqlConnection.execute(
+          'SELECT id, create_time, username, nickname FROM users ORDER BY id DESC LIMIT ?, 1;',
+          [ index ]
+      );
+      currentId = userDetailQuery[0][0].id;
 
-    await elaClient.index({
-      id: currentId,
-      index: config.indexUsers,
-      body: {
+      // ..
+      console.log(config.indexUsers, currentId)
+      elaQuery = await elaClient.search({
+        index: config.indexUsers,
+        q: `id:${currentId}`,
+      });
+
+      if (elaQuery.body.hits.hits.length !== 0) {
+        console.log(`Current user id ${currentId} already added...`);
+        continue;
+      }
+      console.log(`${userDetailQuery[0][0].id} ${userDetailQuery[0][0].username} ${userDetailQuery[0][0].nickname}`);
+      await elaClient.index({
         id: currentId,
-        create_time: userDetailQuery[0][0].create_time,
-        username: userDetailQuery[0][0].username,
-        nickname: userDetailQuery[0][0].nickname,
-      },
-    });
+        index: config.indexUsers,
+        body: {
+          id: currentId,
+          create_time: userDetailQuery[0][0].create_time,
+          username: userDetailQuery[0][0].username,
+          nickname: userDetailQuery[0][0].nickname,
+        },
+      });
+    } catch (e) {
+      console.log('user error', e.toString())
+    }
   }
 }
 
 async function catcherShare() {
-  // 创建MySQL连接
+    // 创建MySQL连接
   const mysqlConnection = await mysql.createPool({
     host: config.mysql_host,
     user: config.mysql_user,
@@ -224,16 +230,16 @@ async function catcherShare() {
       console.log(`Current share id ${id} already added...`);
       continue;
     }
-    await elaClient.index({
-      id,
-      index: config.indexShares,
-      body: {
-        id,
-        create_time,
-        channel_id,
-        content: short_content,
-      },
-    });
+     await elaClient.index({
+       id,
+       index: config.indexShares,
+       body: {
+         id,
+         create_time,
+         channel_id,
+         content: short_content,
+       },
+     });
   }
 }
 
@@ -430,7 +436,11 @@ async function createUs() {
         },
       },
     },
-  });
+  }).then(res => {
+    console.log(res)
+  }).catch(e => {
+    console.log('err', e.toString())
+  })
 }
 
 async function createShare() {
@@ -530,10 +540,14 @@ async function deleteTb() {
 }
 
 async function deleteUs() {
-  await axios({
-    url: `${config.elastic_address}/${config.indexUsers}`,
-    method: 'DELETE',
-  });
+  try {
+    await axios({
+      url: `${config.elastic_address}/${config.indexUsers}`,
+      method: 'DELETE',
+    });
+  } catch (e) {
+    console.log('deleteUs', e.toString())
+  }
 }
 
 async function deleteShare() {
