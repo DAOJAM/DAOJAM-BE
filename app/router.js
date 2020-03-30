@@ -4,12 +4,16 @@ const passport = require('./passport');
  * @param {Egg.Application} app - egg application
  */
 module.exports = app => {
-  const { router, controller } = app;
+  const { router, controller, io } = app;
   // app.passport.mount('facebook');
   // app.get('/passport/twitter',app.passport.authenticate('twitter',{}));
   // app.get('/passport/twitter/callback',app.passport.authenticate('twitter',{}))
 
-
+  // socket-io websocket related
+  // 'ping' is not working, so 'ping-server'
+  io.of('/').route('ping-server', io.controller.default.ping);
+  io.of('/notification').route('get', io.controller.default.getNotification);
+  io.of('/notification').route('getOverview', io.controller.default.getOverview);
   // geetest校验中间件
   const geetestVerify = app.middleware.geetest();
 
