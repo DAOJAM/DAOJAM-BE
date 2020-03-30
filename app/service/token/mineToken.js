@@ -434,6 +434,13 @@ class MineTokenService extends Service {
         code: -1,
       }
     }
+    if (token && token.uid === teamMember.uid) {
+      return {
+        code: -1,
+        message: '不能邀请自己'
+      }
+    }
+
     const conn = await this.app.mysql.beginTransaction();
 
     // 发送邀请
@@ -455,6 +462,8 @@ class MineTokenService extends Service {
       const updateRow = {
         'note': 'invite', // 覆盖来源
         'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+        'contact': '',
+        'content': '',
       };
       const updateOptions = {
         where: {
@@ -482,6 +491,8 @@ class MineTokenService extends Service {
         'uid': teamMember.uid,
         'status': 0,
         'note': 'invite',
+        'contact': '',
+        'content': '',
         'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
       });
       await conn.commit();
@@ -511,7 +522,7 @@ class MineTokenService extends Service {
         } else if (result.status === 1) {
           // 已经同意了
           return {
-            code: 0,
+            code: -1,
             message: '已经是团队成员了',
           }
         } else {
@@ -537,12 +548,13 @@ class MineTokenService extends Service {
     }
   }
   // 申请加入
-  // TODO apply_information 申请信息 我还要再考虑考虑
   async teamMemberApply(userId, tokenId, teamMember) {
+    // 不能申请加入自己的团队 如果自己有token token 的 id 不能等于 tokenId
     const token = await this.getByUserId(userId);
-    if (token.id !== tokenId) {
+    if (token && token.id === tokenId) {
       return {
         code: -1,
+        message: '不能申请加入自己的团队'
       }
     }
 
@@ -567,11 +579,13 @@ class MineTokenService extends Service {
       const updateRow = {
         'note': 'apply', // 覆盖来源
         'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+        'contact': teamMember.contact,
+        'content': teamMember.content,
       };
       const updateOptions = {
         where: {
           'token_id': tokenId,
-          'uid': teamMember.uid
+          'uid': teamMember.uid,
         }
       };
       const updateResult = await conn.update('minetoken_teams', updateRow, updateOptions);
@@ -594,6 +608,8 @@ class MineTokenService extends Service {
         'uid': teamMember.uid,
         'status': 0,
         'note': 'apply',
+        'contact': teamMember.contact,
+        'content': teamMember.content,
         'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
       });
       await conn.commit();
@@ -623,7 +639,7 @@ class MineTokenService extends Service {
         } else if (result.status === 1) {
           // 已经同意了
           return {
-            code: 0,
+            code: -1,
             message: '已经是团队成员了',
           }
         } else {
@@ -808,8 +824,18 @@ class MineTokenService extends Service {
   async teamMemberRemove(userId, tokenId, teamMember) {
     const token = await this.getByUserId(userId);
     if (token.id !== tokenId) {
-      return -1;
+      return {
+        code: -1
+      }
     }
+
+    if (token && token.uid === teamMember.uid) {
+      return {
+        code: -1,
+        message: '不能删除自己',
+      }
+    }
+
     const conn = await this.app.mysql.beginTransaction();
     try {
       await conn.delete('minetoken_teams', {
@@ -817,23 +843,30 @@ class MineTokenService extends Service {
         'uid': teamMember.uid,
       });
       await conn.commit();
-      return 0;
+      return {
+        code: 0
+      };
     } catch (e) {
       await conn.rollback();
       this.ctx.logger.error(`teamMemberRemove error: ${e}`);
-      return -1;
+      return {
+        code: -1
+      }
     }
   }
+  // 不同意申请
+  // .... 目前使用删除队员接口
+  // 不同意邀请
+  // ....
   // 获取所有成员
   // 没有做分页 原因1：人数不会很多 2：觉得一下全部展示会更好 3：开源的的贡献者列表一般都是全部展示
   async teamMember(tokenId) {
     const conn = await this.app.mysql.beginTransaction();
     try {
-      // TODO 需要连表查询
-      const selectResult = await conn.select('minetoken_teams', {
-        where: { 'token_id': tokenId, status: 1 },
-        columns: [ 'uid' ]
-      });
+      const sql = `SELECT m.uid, u.nickname, u.username, u.avatar
+                  FROM minetoken_teams m, users u 
+                  WHERE m.token_id = ? AND m.status = ? AND u.id = m.uid;`;
+      const selectResult = await conn.query(sql, [tokenId, 1]);
 
       // 统计 count
       const countResult = await conn.query('SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = 1;', [tokenId]);
@@ -854,6 +887,36 @@ class MineTokenService extends Service {
       }
     }
   }
+  // 申请队员
+  async teamMemberApplyList(tokenId) {
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      const sql = `SELECT m.uid, m.contact, m.content, u.nickname, u.username, u.avatar
+                  FROM minetoken_teams m, users u 
+                  WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
+      const selectResult = await conn.query(sql, [tokenId, 0, 'apply']);
+
+      // 统计 count
+      const countResult = await conn.query('SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;', [tokenId, 0, 'apply']);
+
+
+      await conn.commit();
+      return {
+        code: 0,
+        data: {
+          count: countResult[0].count || 0,
+          list: selectResult
+        }
+      }
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(`teamMember error: ${e}`);
+      return {
+        code: -1
+      }
+    }
+  }
+  // --------------- 团队管理 end ------------------
 
 
   async hasCreatePermission(userId) {

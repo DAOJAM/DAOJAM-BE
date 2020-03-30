@@ -285,7 +285,7 @@ module.exports = app => {
   // 删除 news
   router.delete('/minetoken/:id/news', passport.authorize, controller.mineToken.deleteNew);
 
-  // --------------- 团队管理 ------------------
+  // --------------- 团队管理 start ------------------
   // 邀请队员
   router.post('/minetoken/:id/teamMemberInvite', passport.authorize, controller.mineToken.teamMemberInvite);
   // 申请加入
@@ -298,6 +298,9 @@ module.exports = app => {
   router.delete('/minetoken/:id/teamMemberRemove', passport.authorize, controller.mineToken.teamMemberRemove);
   // 获取所有队员
   router.get('/minetoken/:id/teamMember', passport.verify, controller.mineToken.teamMember);
+  // 申请队员
+  router.get('/minetoken/:id/teamMemberApply', passport.verify, controller.mineToken.teamMemberApplyList);
+  // --------------- 团队管理 end ------------------
 
 
   // -------------------------------- token display API --------------------------------
