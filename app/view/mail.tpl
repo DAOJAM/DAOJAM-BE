@@ -15,10 +15,10 @@
 	<h1>
 		<span style="color:#337FE5;">{{ username }} 您好</span><span> </span> 
 	</h1>
-<strong><span style="font-family:Microsoft YaHei;">感谢您近期在 <a href="https://smartsignature.io" target="_blank">瞬Matataki</a> 上的交易！</span></strong><br />
+<strong><span style="font-family:Microsoft YaHei;">感谢您近期在 <a href="https://DAOJam.io" target="_blank">DAOJam</a> 上的交易！</span></strong><br />
 <br />
-<span style="font-family:Microsoft YaHei;"> 您购买的 {{ productamount }}份 {{ productname }}&nbsp; 已添加到您的 瞬Matataki 购买记录中。</span><br />
-<span style="font-family:Microsoft YaHei;"> 您可以在 瞬Matataki 中对应的商品页面中找到相应的商品信息。</span><br />
+<span style="font-family:Microsoft YaHei;"> 您购买的 {{ productamount }}份 {{ productname }}&nbsp; 已添加到您的 DAOJam 购买记录中。</span><br />
+<span style="font-family:Microsoft YaHei;"> 您可以在 DAOJam 中对应的商品页面中找到相应的商品信息。</span><br />
 	<p>
 		<br/>
 	</p>
@@ -79,9 +79,9 @@
 		<span style="font-family:Microsoft YaHei;color:#666666;"> 这封电子邮件将作为您的收据。您可以随时查看您的消费历史记录。</span> 
 	</p>
 <br />
-<span style="font-family:Microsoft YaHei;color:#666666;"> 瞬Matataki官方邮箱：</span><br />
+<span style="font-family:Microsoft YaHei;color:#666666;"> DAOJam官方邮箱：</span><br />
 <span style="font-family:Microsoft YaHei;color:#666666;"> socialmedia@andoromeda.io</span><br />
-<span style="font-family:Microsoft YaHei;color:#666666;"> 瞬Matataki微信号：</span><br />
+<span style="font-family:Microsoft YaHei;color:#666666;"> DAOJam微信号：</span><br />
 <span style="font-family:Microsoft YaHei;color:#666666;"> DAppsDev</span> 
   <div style="width: 520px;background:#;padding: 0px 5px;">
 	<p style="text-align:justify;">
