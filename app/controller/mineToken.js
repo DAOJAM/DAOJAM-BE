@@ -227,6 +227,9 @@ class MineTokenController extends Controller {
     } else {
       ctx.body = ctx.msg.failure;
     }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
   }
   // 申请加入
   async teamMemberApply() {
@@ -288,10 +291,16 @@ class MineTokenController extends Controller {
     const tokenId = parseInt(ctx.params.id);
     const { teamMember } = this.ctx.request.body;
     const result = await ctx.service.token.mineToken.teamMemberRemove(ctx.user.id, tokenId, teamMember);
-    if (result === 0) {
-      ctx.body = ctx.msg.success;
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
     } else {
       ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
     }
   }
 
@@ -300,6 +309,23 @@ class MineTokenController extends Controller {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
     const result = await ctx.service.token.mineToken.teamMember(tokenId);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
+  }
+  // 申请队员
+  async teamMemberApplyList() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const result = await ctx.service.token.mineToken.teamMemberApplyList(tokenId);
     if (result.code === 0) {
       ctx.body = {
         ...ctx.msg.success,
