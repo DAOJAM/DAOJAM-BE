@@ -298,8 +298,6 @@ module.exports = app => {
   router.delete('/minetoken/:id/teamMemberRemove', passport.authorize, controller.mineToken.teamMemberRemove);
   // 获取所有队员
   router.get('/minetoken/:id/teamMember', passport.verify, controller.mineToken.teamMember);
-  // 申请队员
-  router.get('/minetoken/:id/teamMemberApply', passport.verify, controller.mineToken.teamMemberApplyList);
   // --------------- 团队管理 end ------------------
 
 

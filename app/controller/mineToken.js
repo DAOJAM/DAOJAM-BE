@@ -209,7 +209,6 @@ class MineTokenController extends Controller {
   }
 
   // --------------- 团队管理 ------------------
-  // TODO 自己不能邀请自己？？？
   // 邀请队员
   async teamMemberInvite() {
     const ctx = this.ctx;
@@ -308,7 +307,8 @@ class MineTokenController extends Controller {
   async teamMember() {
     const ctx = this.ctx;
     const tokenId = parseInt(ctx.params.id);
-    const result = await ctx.service.token.mineToken.teamMember(tokenId);
+    const { note } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.teamMember(tokenId, note);
     if (result.code === 0) {
       ctx.body = {
         ...ctx.msg.success,
@@ -321,24 +321,6 @@ class MineTokenController extends Controller {
       ctx.body.message = result.message;
     }
   }
-  // 申请队员
-  async teamMemberApplyList() {
-    const ctx = this.ctx;
-    const tokenId = parseInt(ctx.params.id);
-    const result = await ctx.service.token.mineToken.teamMemberApplyList(tokenId);
-    if (result.code === 0) {
-      ctx.body = {
-        ...ctx.msg.success,
-        data: result.data,
-      };
-    } else {
-      ctx.body = ctx.msg.failure;
-    }
-    if (result.message) {
-      ctx.body.message = result.message;
-    }
-  }
-
 
   // 增发
   async mint() {
