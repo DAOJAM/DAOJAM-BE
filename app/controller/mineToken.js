@@ -208,6 +208,120 @@ class MineTokenController extends Controller {
     }
   }
 
+  // --------------- 团队管理 ------------------
+  // 邀请队员
+  async teamMemberInvite() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { teamMember } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.teamMemberInvite(ctx.user.id, tokenId, teamMember);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+      if (result.message) {
+        ctx.body.message = result.message;
+      }
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
+  }
+  // 申请加入
+  async teamMemberApply() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { teamMember } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.teamMemberApply(ctx.user.id, tokenId, teamMember);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
+  }
+  // 同意加入 申请同意
+  async teamMemberApplySuccess() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { teamMember } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.teamMemberApplySuccess(ctx.user.id, tokenId, teamMember);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
+  }
+  // 同意加入 邀请同意
+  async teamMemberInviteSuccess() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { teamMember } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.teamMemberInviteSuccess(ctx.user.id, tokenId, teamMember);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
+  }
+  // 删除队员
+  async teamMemberRemove() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { teamMember } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.teamMemberRemove(ctx.user.id, tokenId, teamMember);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
+  }
+
+  // 获取所有成员
+  async teamMember() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { note } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.teamMember(tokenId, note);
+    if (result.code === 0) {
+      ctx.body = {
+        ...ctx.msg.success,
+        data: result.data,
+      };
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+    if (result.message) {
+      ctx.body.message = result.message;
+    }
+  }
+
   // 增发
   async mint() {
     const ctx = this.ctx;

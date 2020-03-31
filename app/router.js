@@ -282,6 +282,21 @@ module.exports = app => {
   // 删除 news
   router.delete('/minetoken/:id/news', passport.authorize, controller.mineToken.deleteNew);
 
+  // --------------- 团队管理 start ------------------
+  // 邀请队员
+  router.post('/minetoken/:id/teamMemberInvite', passport.authorize, controller.mineToken.teamMemberInvite);
+  // 申请加入
+  router.post('/minetoken/:id/teamMemberApply', passport.authorize, controller.mineToken.teamMemberApply);
+  // 同意加入 申请同意
+  router.post('/minetoken/:id/teamMemberApplySuccess', passport.authorize, controller.mineToken.teamMemberApplySuccess);
+  // 同意加入 邀请同意
+  router.post('/minetoken/:id/teamMemberInviteSuccess', passport.authorize, controller.mineToken.teamMemberInviteSuccess);
+  // 删除队员
+  router.delete('/minetoken/:id/teamMemberRemove', passport.authorize, controller.mineToken.teamMemberRemove);
+  // 获取所有队员
+  router.get('/minetoken/:id/teamMember', passport.verify, controller.mineToken.teamMember);
+  // --------------- 团队管理 end ------------------
+
 
   // -------------------------------- token display API --------------------------------
   // 查询用户发行的token持仓用户listsaveLives
