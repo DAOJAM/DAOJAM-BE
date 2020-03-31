@@ -257,7 +257,7 @@ class AccountBindingController extends Controller {
     // 邮箱账号验证密码
     const passwordHash = sha256(password).toString();
     if (platform === 'email' && userAccount.password_hash !== passwordHash) {
-      this.logger.error('controller.account.binding.changeMainAccount failed2', { password_hash: userAccount.password_hash, account, passwordHash, });
+      this.logger.error('controller.account.binding.changeMainAccount failed2', { password_hash: userAccount.password_hash, account, passwordHash });
       ctx.body = {
         ...ctx.msg.failure,
       };
@@ -289,6 +289,21 @@ class AccountBindingController extends Controller {
       data: result,
     };
   }
+
+  /**
+   * DAOJam 特色函数，详见：https://github.com/DAOJAM/DAO_Jam/issues/34
+   * 目前只检测是不是绑定 GitHub 和 邮箱 - Frank
+   * @memberof AccountBindingController
+   */
+  async isVerified() {
+    const { ctx } = this;
+    const result = await this.service.account.binding.isVerified(ctx.user.id);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+
 }
 
 module.exports = AccountBindingController;
