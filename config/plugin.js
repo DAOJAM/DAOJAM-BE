@@ -20,6 +20,11 @@ module.exports = {
     package: 'egg-oss',
   },
 
+  io: {
+    enable: true,
+    package: 'egg-socket.io',
+  },
+
   // 增加限流控制
   ratelimiter: {
     enable: true,

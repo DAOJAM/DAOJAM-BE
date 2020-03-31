@@ -122,6 +122,33 @@ class NotificationService extends Service {
     return this.mark(providerName, TIME_READ_TILL);
   }
 
+  async overviewFor(userId) {
+    const cacheKey = this.userCounterKey(userId);
+    if (await this.app.redis.exists(cacheKey)) {
+      return this.app.redis.hgetall(cacheKey);
+    }
+    const providers = await this.app.mysql.select(TABLE, {
+      where: { uid: userId },
+      columns: [ 'provider', 'read_time' ],
+    });
+    const counters = {};
+    for (const p in this.providers) {
+      if (this.providers.hasOwnProperty(p)) {
+        const provider = this.providers[p];
+        if (provider && typeof provider.populateNotifications === 'function') {
+          const memorized = providers.find(i => i.provider === p);
+          try {
+            counters[p] = ((await provider.populateNotifications(userId, memorized && memorized.read_time ? moment(memorized.read_time) : undefined, 1, 100)) || []).length;
+          } catch (err) {
+            this.ctx.logger.error(err);
+          }
+        }
+      }
+    }
+    await this.app.redis.hmset(cacheKey, counters);
+    await this.app.redis.expire(cacheKey, 60);
+    return counters;
+  }
 }
 
 module.exports = NotificationService;

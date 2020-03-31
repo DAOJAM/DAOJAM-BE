@@ -4,12 +4,16 @@ const passport = require('./passport');
  * @param {Egg.Application} app - egg application
  */
 module.exports = app => {
-  const { router, controller } = app;
+  const { router, controller, io } = app;
   // app.passport.mount('facebook');
   // app.get('/passport/twitter',app.passport.authenticate('twitter',{}));
   // app.get('/passport/twitter/callback',app.passport.authenticate('twitter',{}))
 
-
+  // socket-io websocket related
+  // 'ping' is not working, so 'ping-server'
+  io.of('/').route('ping-server', io.controller.default.ping);
+  io.of('/notification').route('get', io.controller.default.getNotification);
+  io.of('/notification').route('getOverview', io.controller.default.getOverview);
   // geetest校验中间件
   const geetestVerify = app.middleware.geetest();
 
@@ -177,13 +181,6 @@ module.exports = app => {
   router.get('/user/:id', passport.verify, controller.user.user);
   // 获取用户的网站和社交帐号信息
   router.get('/user/:id/links', passport.verify, controller.user.getLinks);
-
-  // 获取目前用户的绑定第三方帐户状态
-  router.get('/user/:id/bind', passport.verify, controller.account.bind.getBindStatus);
-  // 用户获取 platform 的绑定状态，如果没绑定则验证码（用于API对用户识别、钱包的签名请求等）
-  router.get('/user/:id/bind/:platform', passport.authorize, controller.account.bind.GetMyPlatform);
-  // 设置 platform 相关数据（第三方平台的id等，对应 user_third_party 表）
-  router.post('/user/:id/bind/:platform', passport.verify, controller.account.bind.setBindData);
 
   // -------------------------------- 粉丝系统 --------------------------------
   // follow 关注和取关动作。关注数和粉丝数在userinfo里
@@ -455,6 +452,7 @@ module.exports = app => {
   router.post('/account/unbinding', passport.authorize, controller.account.binding.unbinding);
   router.post('/account/changeMainAccount', passport.authorize, controller.account.binding.changeMainAccount);
   router.get('/account/list', passport.authorize, controller.account.binding.list);
+  router.get('/account/isVerified', passport.authorize, controller.account.binding.isVerified);
 
   // router.post('/stablecoin/transfer', passport.verify, controller.ethereum.stablecoin.transfer);
 
@@ -487,5 +485,7 @@ module.exports = app => {
   router.put('/dao/user/skill', passport.authorize, controller.dao.skill.update);
   router.delete('/dao/user/skill', passport.authorize, controller.dao.skill.destroy);
   router.get('/dao/skill/options', passport.verify, controller.dao.skill.options);
+
+  router.post('/api/voting/mint', passport.authorize, controller.voting.mint);
 };
 
