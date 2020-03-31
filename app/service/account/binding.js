@@ -324,6 +324,22 @@ class AccountBindingService extends Service {
     }
     return errors.length > 0 ? errors : null;
   }
+
+  /**
+    * DAOJam 特色函数，详见：https://github.com/DAOJAM/DAO_Jam/issues/34
+    * 目前只检测是不是绑定 GitHub 和 邮箱 - Frank
+    * @param {number} uid DAOJam 用户 ID
+    */
+  async isVerified(uid) {
+    // 同时查询
+    const [ github, email ] = await Promise.all([
+      this.get(uid, 'github'),
+      this.get(uid, 'email'),
+    ]);
+    // 目前只检测是不是绑定 GitHub 和 邮箱，后续有需要再定制这个条件
+    const verified = Boolean(github && email);
+    return { verified };
+  }
 }
 
 module.exports = AccountBindingService;
