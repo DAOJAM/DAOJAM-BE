@@ -820,7 +820,7 @@ class MineTokenService extends Service {
     }
 
   }
-  // 删除队员
+  // 删除队员 (管理删除 邀请删除 申请删除)
   async teamMemberRemove(userId, tokenId, teamMember) {
     const token = await this.getByUserId(userId);
     if (token.id !== tokenId) {
@@ -838,14 +838,46 @@ class MineTokenService extends Service {
 
     const conn = await this.app.mysql.beginTransaction();
     try {
-      await conn.delete('minetoken_teams', {
+      // 查询数据
+      const getResult = await conn.get(`minetoken_teams`, {
         'token_id': tokenId,
         'uid': teamMember.uid,
       });
-      await conn.commit();
-      return {
-        code: 0
-      };
+
+      if (getResult) {
+        // 试图删除管理
+        if (getResult.note === 'owner') {
+          await conn.commit();
+          return {
+            code: -1,
+            message: '不能删除拥有者'
+          }
+        } else if (getResult.note === teamMember.note) {
+          // 邀请删除 申请删除
+          // teamMember.note 的作用是增加删除条件 防止删串
+          await conn.delete('minetoken_teams', {
+            'token_id': tokenId,
+            'uid': teamMember.uid,
+            'note': teamMember.note,
+          });
+          await conn.commit();
+          return {
+            code: 0
+          };
+        } else {
+          await conn.commit();
+          return {
+            code: -1,
+            message: '删除失败'
+          }
+        }
+      } else {
+        await conn.commit();
+        return {
+          code: -1
+        }
+      }
+
     } catch (e) {
       await conn.rollback();
       this.ctx.logger.error(`teamMemberRemove error: ${e}`);
@@ -854,53 +886,49 @@ class MineTokenService extends Service {
       }
     }
   }
-  // 不同意申请
-  // .... 目前使用删除队员接口
-  // 不同意邀请
-  // ....
   // 获取所有成员
   // 没有做分页 原因1：人数不会很多 2：觉得一下全部展示会更好 3：开源的的贡献者列表一般都是全部展示
-  async teamMember(tokenId) {
-    const conn = await this.app.mysql.beginTransaction();
+  async teamMember(tokenId, note = '') {
     try {
-      const sql = `SELECT m.uid, u.nickname, u.username, u.avatar
-                  FROM minetoken_teams m, users u 
-                  WHERE m.token_id = ? AND m.status = ? AND u.id = m.uid;`;
-      const selectResult = await conn.query(sql, [tokenId, 1]);
-
-      // 统计 count
-      const countResult = await conn.query('SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = 1;', [tokenId]);
-
-      await conn.commit();
-      return {
-        code: 0,
-        data: {
-          count: countResult[0].count || 0,
-          list: selectResult
-        }
-      }
-    } catch (e) {
-      await conn.rollback();
-      this.ctx.logger.error(`teamMember error: ${e}`);
-      return {
-        code: -1
-      }
-    }
-  }
-  // 申请队员
-  async teamMemberApplyList(tokenId) {
-    const conn = await this.app.mysql.beginTransaction();
-    try {
-      const sql = `SELECT m.uid, m.contact, m.content, u.nickname, u.username, u.avatar
+      let sql = '';
+      let countSql = '';
+      let sqlParams = [];
+      let countSqlParams = [];
+      if (note === 'apply') {
+        // 申请列表
+        sql = `SELECT m.uid, m.note, m.contact, m.content, u.nickname, u.username, u.avatar
                   FROM minetoken_teams m, users u 
                   WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
-      const selectResult = await conn.query(sql, [tokenId, 0, 'apply']);
+        sqlParams = [tokenId, 0, 'apply'];
+
+        countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;';
+        countSqlParams = [tokenId, 0, 'apply'];
+      } else if (note === 'invite') {
+        // 邀请列表
+        sql = `SELECT m.uid, m.note, u.nickname, u.username, u.avatar
+                  FROM minetoken_teams m, users u 
+                  WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
+        sqlParams = [tokenId, 0, 'invite'];
+
+        countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;';
+        countSqlParams = [tokenId, 0, 'invite'];
+
+      } else {
+        // 成员列表
+        sql = `SELECT m.uid, m.note, u.nickname, u.username, u.avatar
+              FROM minetoken_teams m, users u 
+              WHERE m.token_id = ? AND m.status = ? AND u.id = m.uid;`;
+        sqlParams = [tokenId, 1];
+
+        countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = 1;';
+        countSqlParams = [tokenId];
+      }
+      // 查询列表
+      const selectResult = await this.app.mysql.query(sql, sqlParams);
 
       // 统计 count
-      const countResult = await conn.query('SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;', [tokenId, 0, 'apply']);
+      const countResult = await this.app.mysql.query(countSql, countSqlParams);
 
-
-      await conn.commit();
       return {
         code: 0,
         data: {
@@ -908,8 +936,8 @@ class MineTokenService extends Service {
           list: selectResult
         }
       }
+
     } catch (e) {
-      await conn.rollback();
       this.ctx.logger.error(`teamMember error: ${e}`);
       return {
         code: -1
