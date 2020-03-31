@@ -437,6 +437,7 @@ module.exports = app => {
   router.post('/account/unbinding', passport.authorize, controller.account.binding.unbinding);
   router.post('/account/changeMainAccount', passport.authorize, controller.account.binding.changeMainAccount);
   router.get('/account/list', passport.authorize, controller.account.binding.list);
+  router.get('/account/isVerified', passport.authorize, controller.account.binding.isVerified);
 
   // router.post('/stablecoin/transfer', passport.verify, controller.ethereum.stablecoin.transfer);
 
