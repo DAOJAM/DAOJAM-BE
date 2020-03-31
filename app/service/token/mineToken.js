@@ -60,7 +60,50 @@ class MineTokenService extends Service {
       introduction,
       contract_address: txHash,
     });
+    // team 写入拥有者
+    await this.setTeamOwner(result.insertId, userId);
+
     return result.insertId;
+  }
+
+  // 设置团队拥有者
+  async setTeamOwner(tokenId, uid) {
+    const conn = await this.app.mysql.beginTransaction();
+
+    try {
+      // 查询
+      const sqlSelect = `SELECT * FROM minetoken_teams WHERE token_id = ? AND uid = ?;`;
+      const SelectResult = await conn.query(sqlSelect, [tokenId, uid]);
+      if (SelectResult.length === 0) {
+        // 没有记录 插入
+        const sql = `INSERT INTO minetoken_teams (token_id, uid, \`status\`, note, create_time) 
+                     VALUES (?, ?, ?, ?, ?);`;
+        const result = await conn.query(sql, [tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss')]);
+        await conn.commit();
+
+        if (result.affectedRows === 1) {
+          return 0;
+        } else {
+          return -1;
+        }
+      } else {
+        // 有记录 更新数据
+        const sql = `UPDATE minetoken_teams SET token_id = ?, uid = ?, status = ?, note = ?, create_time = ? 
+                            WHERE token_id = ? AND uid = ?;`;
+        const result = await conn.query(sql, [tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss'), tokenId, uid]);
+        await conn.commit();
+
+        if (result.affectedRows === 1) {
+          return 0;
+        } else {
+          return -1;
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      await conn.rollback();
+      this.ctx.logger.error(`setTeamOwner error: ${e}`);
+    }
   }
 
   async emitIssueEvent(from_uid, tokenId, ip, transactionHash) {
@@ -309,8 +352,6 @@ class MineTokenService extends Service {
     }
   }
 
-
-
   // 获取news
   async getNews(tokenId, page= 1, pagesize= 20, order='') {
     const conn = await this.app.mysql.beginTransaction();
@@ -426,6 +467,528 @@ class MineTokenService extends Service {
       return -1;
     }
   }
+
+  // --------------- 团队管理 ------------------
+  // 邀请队员
+  async teamMemberInvite(userId, tokenId, teamMember) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return {
+        code: -1,
+      }
+    }
+    if (token && token.uid === teamMember.uid) {
+      return {
+        code: -1,
+        message: '不能邀请自己'
+      }
+    }
+
+    const conn = await this.app.mysql.beginTransaction();
+
+    // 发送邀请
+    const sendInvite = () => {
+      // TODO 邀请操作
+      console.log('send invite');
+      if (true) {
+        return {
+          code: 0,
+          message: '邀请成功',
+        }
+      } else {
+        throw new Error('send Invite error');
+      }
+    };
+
+    // 没有同意加入团队 继续发送请求并且更新数据
+    const sendInviteAndUpdateDate = async () => {
+      const updateRow = {
+        'note': 'invite', // 覆盖来源
+        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+        'contact': '',
+        'content': '',
+      };
+      const updateOptions = {
+        where: {
+          'token_id': tokenId,
+          'uid': teamMember.uid
+        }
+      };
+      const updateResult = await conn.update('minetoken_teams', updateRow, updateOptions);
+
+      await conn.commit();
+
+      // 更新时间成功
+      if (updateResult.affectedRows === 1) {
+        console.log('更新邀请信息');
+        return sendInvite();
+      } else {
+        throw new Error('update note create_time error');
+      }
+    };
+
+    // 如果没有记录
+    const sendFirstInvite = async () => {
+      const insertResult = await conn.insert('minetoken_teams', {
+        'token_id': tokenId,
+        'uid': teamMember.uid,
+        'status': 0,
+        'note': 'invite',
+        'contact': '',
+        'content': '',
+        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+      });
+      await conn.commit();
+
+      // 写入成功
+      if (insertResult.affectedRows === 1) {
+        console.log('第一次邀请');
+        return sendInvite();
+      } else {
+        throw new Error(`invite inset error: ${insertResult}`);
+      }
+    };
+
+    try {
+      // 查询是否已经邀请过了
+      const result = await conn.get('minetoken_teams', {
+        'token_id': tokenId,
+        'uid': teamMember.uid,
+      });
+
+      // 查询是否已有数据
+      if (result) {
+        // 有记录 查看状态
+        if (result.status === 0) {
+          // 还没有同意
+          return sendInviteAndUpdateDate();
+        } else if (result.status === 1) {
+          // 已经同意了
+          return {
+            code: -1,
+            message: '已经是团队成员了',
+          }
+        } else {
+          // 其他 status 不等于 1 0
+          this.ctx.logger.error(`status error ${result.status}`);
+          return {
+            code: -1,
+            message: '邀请失败',
+          }
+        }
+      } else {
+        // 没有记录
+        return sendFirstInvite();
+      }
+
+    } catch (e) {
+      console.log(e);
+      await conn.rollback();
+      this.ctx.logger.error(`teamMemberInvite error: ${e}`);
+      return {
+        code: -1,
+      }
+    }
+  }
+  // 申请加入
+  async teamMemberApply(userId, tokenId, teamMember) {
+    // 不能申请加入自己的团队 如果自己有token token 的 id 不能等于 tokenId
+    const token = await this.getByUserId(userId);
+    if (token && token.id === tokenId) {
+      return {
+        code: -1,
+        message: '不能申请加入自己的团队'
+      }
+    }
+
+    const conn = await this.app.mysql.beginTransaction();
+
+    // 发送申请
+    const sendApply = () => {
+      // TODO 申请操作
+      console.log('send apply');
+      if (true) {
+        return {
+          code: 0,
+          message: '申请成功',
+        }
+      } else {
+        throw new Error('send apply error');
+      }
+    };
+
+    // 没有同意加入团队 继续发送请求并且更新数据
+    const sendApplyAndUpdateDate = async () => {
+      const updateRow = {
+        'note': 'apply', // 覆盖来源
+        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+        'contact': teamMember.contact,
+        'content': teamMember.content,
+      };
+      const updateOptions = {
+        where: {
+          'token_id': tokenId,
+          'uid': teamMember.uid,
+        }
+      };
+      const updateResult = await conn.update('minetoken_teams', updateRow, updateOptions);
+
+      await conn.commit();
+
+      // 更新时间成功
+      if (updateResult.affectedRows === 1) {
+        console.log('更新申请信息');
+        return sendApply();
+      } else {
+        throw new Error('update note create_time error');
+      }
+    };
+
+    // 如果没有记录
+    const sendFirstApply = async () => {
+      const insertResult = await conn.insert('minetoken_teams', {
+        'token_id': tokenId,
+        'uid': teamMember.uid,
+        'status': 0,
+        'note': 'apply',
+        'contact': teamMember.contact,
+        'content': teamMember.content,
+        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+      });
+      await conn.commit();
+
+      // 写入成功
+      if (insertResult.affectedRows === 1) {
+        console.log('第一次申请');
+        return sendApply();
+      } else {
+        throw new Error(`apply inset error: ${insertResult}`);
+      }
+    };
+
+    try {
+      // 查询是否已经邀申请过了
+      const result = await conn.get('minetoken_teams', {
+        'token_id': tokenId,
+        'uid': teamMember.uid,
+      });
+
+      // 查询是否已有数据
+      if (result) {
+        // 有记录 查看状态
+        if (result.status === 0) {
+          // 还没有同意
+          return sendApplyAndUpdateDate();
+        } else if (result.status === 1) {
+          // 已经同意了
+          return {
+            code: -1,
+            message: '已经是团队成员了',
+          }
+        } else {
+          // 其他 status 不等于 1 0
+          this.ctx.logger.error(`status error ${result.status}`);
+          return {
+            code: -1,
+            message: '申请失败',
+          }
+        }
+      } else {
+        // 没有记录
+        return sendFirstApply();
+      }
+
+    } catch (e) {
+      console.log(e);
+      await conn.rollback();
+      this.ctx.logger.error(`teamMemberApply error: ${e}`);
+      return {
+        code: -1,
+      }
+    }
+  }
+  // 同意加入 申请同意 (管理员同意的角度）
+  async teamMemberApplySuccess(userId, tokenId, teamMember) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return {
+        code: -1,
+      }
+    }
+
+    // 同意加入团队
+    const successJoin = async () => {
+      const updateRow = {
+        'status': 1,
+      };
+      const updateOptions = {
+        where: {
+          'token_id': tokenId,
+          'uid': teamMember.uid,
+          'note': 'apply', // 只负责相应的修改
+        }
+      };
+      const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
+
+      if (updateResult.affectedRows === 1) {
+        return {
+          code: 0,
+        }
+      } else {
+        throw new Error('successJoin error');
+      }
+    };
+
+    try {
+      // 查询记录
+      const result = await this.app.mysql.get('minetoken_teams', {
+        'token_id': tokenId,
+        'uid': teamMember.uid,
+        'note': 'apply', // 只负责相应的修改
+      });
+
+      if (result) {
+        if (result.status === 0) {
+          return successJoin();
+        } else if (result.status === 1) {
+          return {
+            code: 0,
+            message: '已经是团队成员了',
+          }
+        } else {
+          // 其他 status 不等于 1 0
+          this.ctx.logger.error(`status error ${result.status}`);
+          return {
+            code: -1,
+            message: '同意失败',
+          }
+        }
+      } else {
+        return {
+          code: -1,
+          message: '没有这条记录',
+        }
+      }
+
+    } catch (e) {
+      console.log(e);
+      this.ctx.logger.error(`teamMemberInvite error: ${e}`);
+      return {
+        code: -1,
+      }
+    }
+
+  }
+  /**
+   * 同意加入 邀请同意 (用户同意的角度)
+   * @param userId { number | string }
+   * @param tokenId { number | string }
+   * @param teamMember { object } { invite_id: 邀请人的id }
+   * @returns {Promise<{code: number}|undefined|{code: number, message: string}>}
+   */
+  async teamMemberInviteSuccess(userId, tokenId, teamMember) {
+
+    // token_id invite_id user_id
+
+    // 查询token user_id note
+    // 判断token是邀请人所有
+    const token = await this.getByUserId(teamMember['invite_id']);
+    if (token.id !== tokenId) {
+      return {
+        code: -1,
+      }
+    }
+
+    // 同意加入团队
+    const successJoin = async () => {
+      const updateRow = {
+        'status': 1,
+      };
+      const updateOptions = {
+        where: {
+          'token_id': tokenId,
+          'uid': userId,
+          'note': 'invite', // 只负责相应的修改
+        }
+      };
+      const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
+
+      if (updateResult.affectedRows === 1) {
+        return {
+          code: 0,
+          message: '接受邀请',
+        }
+      } else {
+        throw new Error('successJoin error');
+      }
+    };
+
+    try {
+      // 查询记录
+      const result = await this.app.mysql.get('minetoken_teams', {
+        'token_id': tokenId,
+        'uid': userId,
+        'note': 'invite', // 只负责相应的修改
+      });
+
+      if (result) {
+        if (result.status === 0) {
+          return successJoin();
+        } else if (result.status === 1) {
+          return {
+            code: 0,
+            message: '已经是团队成员了',
+          }
+        } else {
+          // 其他 status 不等于 1 0
+          this.ctx.logger.error(`status error ${result.status}`);
+          return {
+            code: -1,
+            message: '同意失败',
+          }
+        }
+      } else {
+        return {
+          code: -1,
+          message: '您不是邀请对象',
+        }
+      }
+
+    } catch (e) {
+      console.log(e);
+      this.ctx.logger.error(`teamMemberInviteSuccess error: ${e}`);
+      return {
+        code: -1,
+      }
+    }
+
+  }
+  // 删除队员 (管理删除 邀请删除 申请删除)
+  async teamMemberRemove(userId, tokenId, teamMember) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return {
+        code: -1
+      }
+    }
+
+    if (token && token.uid === teamMember.uid) {
+      return {
+        code: -1,
+        message: '不能删除自己',
+      }
+    }
+
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      // 查询数据
+      const getResult = await conn.get(`minetoken_teams`, {
+        'token_id': tokenId,
+        'uid': teamMember.uid,
+      });
+
+      if (getResult) {
+        // 试图删除管理
+        if (getResult.note === 'owner') {
+          await conn.commit();
+          return {
+            code: -1,
+            message: '不能删除拥有者'
+          }
+        } else if (getResult.note === teamMember.note) {
+          // 邀请删除 申请删除
+          // teamMember.note 的作用是增加删除条件 防止删串
+          await conn.delete('minetoken_teams', {
+            'token_id': tokenId,
+            'uid': teamMember.uid,
+            'note': teamMember.note,
+          });
+          await conn.commit();
+          return {
+            code: 0
+          };
+        } else {
+          await conn.commit();
+          return {
+            code: -1,
+            message: '删除失败'
+          }
+        }
+      } else {
+        await conn.commit();
+        return {
+          code: -1
+        }
+      }
+
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(`teamMemberRemove error: ${e}`);
+      return {
+        code: -1
+      }
+    }
+  }
+  // 获取所有成员
+  // 没有做分页 原因1：人数不会很多 2：觉得一下全部展示会更好 3：开源的的贡献者列表一般都是全部展示
+  async teamMember(tokenId, note = '') {
+    try {
+      let sql = '';
+      let countSql = '';
+      let sqlParams = [];
+      let countSqlParams = [];
+      if (note === 'apply') {
+        // 申请列表
+        sql = `SELECT m.uid, m.note, m.contact, m.content, u.nickname, u.username, u.avatar
+                  FROM minetoken_teams m, users u 
+                  WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
+        sqlParams = [tokenId, 0, 'apply'];
+
+        countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;';
+        countSqlParams = [tokenId, 0, 'apply'];
+      } else if (note === 'invite') {
+        // 邀请列表
+        sql = `SELECT m.uid, m.note, u.nickname, u.username, u.avatar
+                  FROM minetoken_teams m, users u 
+                  WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
+        sqlParams = [tokenId, 0, 'invite'];
+
+        countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;';
+        countSqlParams = [tokenId, 0, 'invite'];
+
+      } else {
+        // 成员列表
+        sql = `SELECT m.uid, m.note, u.nickname, u.username, u.avatar
+              FROM minetoken_teams m, users u 
+              WHERE m.token_id = ? AND m.status = ? AND u.id = m.uid;`;
+        sqlParams = [tokenId, 1];
+
+        countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = 1;';
+        countSqlParams = [tokenId];
+      }
+      // 查询列表
+      const selectResult = await this.app.mysql.query(sql, sqlParams);
+
+      // 统计 count
+      const countResult = await this.app.mysql.query(countSql, countSqlParams);
+
+      return {
+        code: 0,
+        data: {
+          count: countResult[0].count || 0,
+          list: selectResult
+        }
+      }
+
+    } catch (e) {
+      this.ctx.logger.error(`teamMember error: ${e}`);
+      return {
+        code: -1
+      }
+    }
+  }
+  // --------------- 团队管理 end ------------------
+
 
   async hasCreatePermission(userId) {
     const user = await this.service.user.get(userId);
