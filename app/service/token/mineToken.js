@@ -60,7 +60,50 @@ class MineTokenService extends Service {
       introduction,
       contract_address: txHash,
     });
+    // team 写入拥有者
+    await this.setTeamOwner(result.insertId, userId);
+
     return result.insertId;
+  }
+
+  // 设置团队拥有者
+  async setTeamOwner(tokenId, uid) {
+    const conn = await this.app.mysql.beginTransaction();
+
+    try {
+      // 查询
+      const sqlSelect = `SELECT * FROM minetoken_teams WHERE token_id = ? AND uid = ?;`;
+      const SelectResult = await conn.query(sqlSelect, [tokenId, uid]);
+      if (SelectResult.length === 0) {
+        // 没有记录 插入
+        const sql = `INSERT INTO minetoken_teams (token_id, uid, \`status\`, note, create_time) 
+                     VALUES (?, ?, ?, ?, ?);`;
+        const result = await conn.query(sql, [tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss')]);
+        await conn.commit();
+
+        if (result.affectedRows === 1) {
+          return 0;
+        } else {
+          return -1;
+        }
+      } else {
+        // 有记录 更新数据
+        const sql = `UPDATE minetoken_teams SET token_id = ?, uid = ?, status = ?, note = ?, create_time = ? 
+                            WHERE token_id = ? AND uid = ?;`;
+        const result = await conn.query(sql, [tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss'), tokenId, uid]);
+        await conn.commit();
+
+        if (result.affectedRows === 1) {
+          return 0;
+        } else {
+          return -1;
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      await conn.rollback();
+      this.ctx.logger.error(`setTeamOwner error: ${e}`);
+    }
   }
 
   async emitIssueEvent(from_uid, tokenId, ip, transactionHash) {
