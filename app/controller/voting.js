@@ -11,7 +11,7 @@ class VotingController extends Controller {
     // const uid = ctx.user.id;
     const { address } = ctx.request.body;
     const amount = 100; // 每天可领赠票的数量
-    const result = await this.service.ethereum.Voting._mint(address, amount);
+    const result = await this.service.voting._mint(address, amount);
     ctx.body = {
       ...ctx.msg.success,
       data: result,
