@@ -14,17 +14,17 @@ class sendCloudService extends Service {
     };
     let templateInvokeName = '';
     if (type === consts.mailTemplate.registered) {
-      templateInvokeName = 'matataki';
+      templateInvokeName = 'daojam_sign_up';
     } else if (type === consts.mailTemplate.resetPassword) {
-      templateInvokeName = 'matatakiResetPassword';
+      templateInvokeName = 'daojam_reset_password';
     }
     const params = {
       apiUser: API_USER,
       apiKey: API_KEY,
-      from: 'admin@smartsignature.io',
+      from: 'admin@matataki.io',
       to: email,
       templateInvokeName,
-      fromName: '瞬Matataki官方',
+      fromName: 'DAOJam 团队',
       xsmtpapi: JSON.stringify(x_smtpapi),
     };
     const querystringParams = require('querystring').stringify(params);
