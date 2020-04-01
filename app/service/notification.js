@@ -21,6 +21,9 @@ class NotificationService extends Service {
       comment: null,
       messaging: null,
       notice: null,
+      coin: null,
+      teamApplyRequest: this.service.notificationProviders.memberApply,
+      teamInviteRequest: this.service.notificationProviders.invitationForUser,
     };
     this.app.mysql.queryFormat = function(query, values) {
       if (!values) return query;
