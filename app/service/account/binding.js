@@ -332,12 +332,13 @@ class AccountBindingService extends Service {
     */
   async isVerified(uid) {
     // 同时查询
-    const [ github, email ] = await Promise.all([
+    const [ github, email, eth ] = await Promise.all([
       this.get(uid, 'github'),
       this.get(uid, 'email'),
+      this.get(uid, 'eth'),
     ]);
     // 目前只检测是不是绑定 GitHub 和 邮箱，后续有需要再定制这个条件
-    const verified = Boolean(github && email);
+    const verified = Boolean(github && email && eth);
     return { verified };
   }
 }
