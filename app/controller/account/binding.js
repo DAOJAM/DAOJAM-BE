@@ -293,6 +293,7 @@ class AccountBindingController extends Controller {
   /**
    * DAOJam 特色函数，详见：https://github.com/DAOJAM/DAO_Jam/issues/34
    * 目前只检测是不是绑定 GitHub 和 邮箱 - Frank
+   * 添加了一个检测以太坊账号是否绑定 - zx
    * @memberof AccountBindingController
    */
   async isVerified() {

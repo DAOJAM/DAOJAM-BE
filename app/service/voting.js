@@ -1,8 +1,8 @@
 
 'use strict';
-const Web3Service = require('./web3');
-const QVVotingJSON = require('./abi/QVVoting.json');
-const contractAddress = '0x9CF123de9927E8a03B12a9bca3B86E84C2dfEA8D';
+const Web3Service = require('./ethereum/web3');
+const QVVotingJSON = require('./ethereum/abi/QVVoting.json');
+const contractAddress = '0x7260e769005Fec7A9ba7415AdF45D69AB126a33d';
 
 class VotingService extends Web3Service {
   constructor(ctx, app) {
@@ -17,8 +17,10 @@ class VotingService extends Web3Service {
     value = 0,
     gasLimit = 500000,
   }) {
+    console.log('_sendTransactionWithOurKey------');
     // owner address的私钥
     const { privateKey } = this.config.ethereum.voting;
+    console.log(privateKey);
     return this.sendTransaction(privateKey, encodeABI, { to, value, gasLimit });
   }
 
@@ -29,10 +31,14 @@ class VotingService extends Web3Service {
    * @param {string} to 收取赠票的地址
    * @param {string} amount 赠票的数量
    */
-  _mint(to, amount) {
+  async _mint(to, amount) {
     const contract = this.ctx.QVVoting;
     const encodeABI = contract.methods.mint(to, amount).encodeABI();
-    return this._sendTransactionWithOurKey(encodeABI);
+    console.log(encodeABI);
+    return this._sendTransactionWithOurKey(encodeABI, {
+      to: contractAddress,
+      gasLimit: 6000000,
+    });
   }
 
   /**
@@ -81,12 +87,36 @@ class VotingService extends Web3Service {
    * @return {*} 结果
    * @memberof StablecoinService
    */
-  createProposal(privatekey, { _description, _voteExpirationTime }) {
+  createProposal(privatekey, { name, description, voteExpirationTime }) {
     const contract = this.ctx.QVVoting;
-    const encodeABI = contract.methods.castVote(_description, _voteExpirationTime).encodeABI();
+    console.log('---------createProposal----------');
+    console.log(contract);
+    const encodeABI = contract.methods.createProposal(name, description, voteExpirationTime).encodeABI();
     return this.sendTransaction(privatekey, encodeABI);
   }
-
+  async EventProposalCreated() {
+    const contract = this.ctx.QVVoting;
+    console.log('---------EventProposalCreated----------');
+    console.log(contract.events);
+    contract.events.ProposalCreated({}, (error, event) => {
+      console.log(event);
+    })
+      .on('data', event => {
+        console.log(event); // same results as the optional callback above
+      })
+      .on('error', console.error);
+  }
+  async EventVoteCasted() {
+    const contract = this.ctx.QVVoting;
+    contract.events.VoteCasted({}, (error, event) => {
+      console.log(event);
+    });
+  }
+  async setCreateCost(cost) {
+    const contract = this.ctx.QVVoting;
+    const encodeABI = contract.methods.setCreateCost(cost).encodeABI();
+    return this._sendTransactionWithOurKey(encodeABI);
+  }
 }
 
 module.exports = VotingService;

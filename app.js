@@ -1,3 +1,7 @@
+const Web3 = require('web3');
+const QVVotingJSON = require('./app/service/ethereum/abi/QVVoting.json');
+const contractAddress = '0x7260e769005Fec7A9ba7415AdF45D69AB126a33d';
+
 class Bootstrapper {
 
   constructor(app) {
@@ -6,6 +10,50 @@ class Bootstrapper {
 
   async didReady() {
     await this.loadCache();
+    const ctx = await this.app.createAnonymousContext();
+    await this.loadWeb3(ctx);
+  }
+  async loadWeb3(ctx) {
+    const ApiEndpoint = 'https://rinkeby.infura.io/v3/e25357f98f9446e3bbdca110b0fefdf1';
+    const WssEndpoint = 'wss://rinkeby.infura.io/ws/v3/e25357f98f9446e3bbdca110b0fefdf1';
+    const HttpProvider = new Web3.providers.HttpProvider(ApiEndpoint);
+    const WebsocketProvider = new Web3.providers.WebsocketProvider(WssEndpoint);
+    const web3 = new Web3(HttpProvider);
+    web3.setProvider(WebsocketProvider);
+    const contract = new web3.eth.Contract(QVVotingJSON.abi, contractAddress);
+    contract.events.ProposalCreated({})
+      .on('data', async event => {
+        console.log(event);
+        // const { creator, ProposalID, description, votingTimeInHours }
+        const { ProposalID, name, description, creator } = event.returnValues;
+        const blockNumber = event.blockNumber;
+        const trx = event.transactionHash;
+        await ctx.service.project.create({
+          pid: ProposalID,
+          name,
+          description,
+          block_number: blockNumber,
+          trx,
+          owner: creator,
+        });
+      })
+      .on('error', console.error);
+    contract.events.VoteCasted({})
+      .on('data', async event => {
+        console.log(event);
+        const { voter, ProposalID, weight } = event.returnValues;
+        // create({ pid, voter, weight, block_number, trx })
+        const blockNumber = event.blockNumber;
+        const trx = event.transactionHash;
+        await ctx.service.votingLog.create({
+          pid: ProposalID,
+          voter,
+          weight,
+          block_number: blockNumber,
+          trx,
+        });
+      })
+      .on('error', console.error);
   }
 
   async loadCache() {
