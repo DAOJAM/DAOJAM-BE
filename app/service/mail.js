@@ -114,11 +114,12 @@ class MailService extends Service {
       //   return mailContent;
       // }
       const mailOptions = {
-        from: `Matataki<${this.config.mail.auth.user}>`,
+        from: `DAOJam 团队<${this.config.mail.auth.user}>`,
         to: email,
-        subject: `瞬Matataki:用户${action}`,
+        subject: `DAOJam ${action}`,
         html: mailContent,
       };
+
       const transpoter = await nodemailer.createTransport(this.config.mail);
       result = await transpoter.sendMail(mailOptions);
     } catch (err) {
