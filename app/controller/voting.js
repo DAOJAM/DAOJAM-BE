@@ -9,9 +9,10 @@ class VotingController extends Controller {
     const ctx = this.ctx;
     // 需要根据用户id查找用户的address
     // const uid = ctx.user.id;
-    const { address } = ctx.request.body;
+    // const { address } = ctx.request.body;
     const amount = 100; // 每天可领赠票的数量
-    const result = await this.service.voting._mint(address, amount);
+    const user = await this.service.account.binding.get(ctx.user.id, 'eth');
+    const result = await this.service.voting._mint(user.account, amount);
     ctx.body = {
       ...ctx.msg.success,
       data: result,
