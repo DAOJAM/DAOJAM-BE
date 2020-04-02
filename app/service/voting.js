@@ -40,6 +40,11 @@ class VotingService extends Web3Service {
       gasLimit: 6000000,
     });
   }
+  async balance(coinbase) {
+    const contract = this.ctx.QVVoting;
+    const result = contract.methods.balanceOf(coinbase).call();
+    return result;
+  }
 
   /**
    *
