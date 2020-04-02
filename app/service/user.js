@@ -802,6 +802,10 @@ class UserService extends Service {
 
     return result;
   }
+  async setEmailSubscriber(email, ip) {
+    const { affectedRows } = await this.app.mysql.query('INSERT IGNORE email_subscribers(ip, email, create_time) VALUES(INET_ATON(?), ?, ?);', [ip, email, moment().format('YYYY-MM-DD HH:mm:ss')]);
+    return affectedRows === 1;
+  }
 }
 
 module.exports = UserService;
