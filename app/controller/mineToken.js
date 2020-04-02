@@ -65,7 +65,10 @@ class MineTokenController extends Controller {
 
     const token = await ctx.service.token.mineToken.get(id);
     const exchange = await ctx.service.token.exchange.detail(id);
-    const user = await ctx.service.user.get(token.uid);
+    let user = null;
+    if (token) {
+      user = await ctx.service.user.get(token.uid);
+    }
     // const vol_24h = await ctx.service.token.exchange.volume_24hour(id);
     if (exchange) {
       const trans_24hour = await ctx.service.token.exchange.trans_24hour(id);
@@ -320,6 +323,50 @@ class MineTokenController extends Controller {
     if (result.message) {
       ctx.body.message = result.message;
     }
+  }
+  // 邀请列表（被邀请人的列表）
+  async teamMemberInviteList() {
+    const ctx = this.ctx;
+    const userId = ctx.user.id;
+    if (userId) {
+      const result = await ctx.service.token.mineToken.teamMemberInviteList(userId);
+      if (result.code === 0) {
+        ctx.body = {
+          ...ctx.msg.success,
+          data: result.data,
+        };
+      } else {
+        ctx.body = ctx.msg.failure;
+      }
+      if (result.message) {
+        ctx.body.message = result.message;
+      }
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
+  // 邀请同意或删除（被邀请人的操作）
+  async teamMemberInviteUser() {
+    const ctx = this.ctx;
+    const { teamMember } = this.ctx.request.body;
+    const userId = ctx.user.id;
+    if (userId) {
+      const result = await ctx.service.token.mineToken.teamMemberInviteUser(userId, teamMember);
+      if (result.code === 0) {
+        ctx.body = {
+          ...ctx.msg.success,
+          data: result.data,
+        };
+      } else {
+        ctx.body = ctx.msg.failure;
+      }
+      if (result.message) {
+        ctx.body.message = result.message;
+      }
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+
   }
 
   // 增发
