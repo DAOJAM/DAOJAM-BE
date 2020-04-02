@@ -487,6 +487,8 @@ module.exports = app => {
   router.get('/dao/skill/options', passport.verify, controller.dao.skill.options);
 
   router.post('/daojam/voting/mint', passport.authorize, controller.voting.mint);
+  router.get('/daojam/voting/balance', passport.authorize, controller.voting.balance);
+
   router.get('/daojam/project', passport.verify, controller.project.index);
   router.get('/daojam/project/:id', passport.verify, controller.project.show);
 };
