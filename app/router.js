@@ -497,5 +497,11 @@ module.exports = app => {
   router.get('/daojam/project/:id', passport.verify, controller.project.show);
   // -------------------------------- 邮件订阅API --------------------------------
   router.post('/email/subscriber/:email', passport.verify, controller.user.setEmailSubscriber);
+
+  // ------------------- 任务 --------------------------
+  router.get('/task', passport.verify, controller.task.task);
+  router.post('/task', passport.authorize, controller.task.updateTask);
+  router.get('/taskTeam', passport.verify, controller.task.taskTeam);
+  // ------------------- 任务 end --------------------------
 };
 
