@@ -500,6 +500,8 @@ module.exports = app => {
 
   // ------------------- 任务 --------------------------
   router.get('/task', passport.verify, controller.task.task);
+  router.post('/task', passport.authorize, controller.task.updateTask);
+  router.get('/taskTeam', passport.verify, controller.task.taskTeam);
   // ------------------- 任务 end --------------------------
 };
 

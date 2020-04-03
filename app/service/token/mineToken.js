@@ -176,7 +176,7 @@ class MineTokenService extends Service {
       return -1;
     }
 
-    const conn = await this.app.mysql.beginTransaction();
+      const conn = await this.app.mysql.beginTransaction();
     try {
       await conn.query('DELETE FROM minetoken_resources WHERE token_id = ?;', [ tokenId ]);
 
