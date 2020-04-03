@@ -21,6 +21,7 @@ class Bootstrapper {
     const web3 = new Web3(HttpProvider);
     web3.setProvider(WebsocketProvider);
     const contract = new web3.eth.Contract(QVVotingJSON.abi, contractAddress);
+    ctx.logger.info('app loadWeb3 contract: %j', contract);
     contract.events.ProposalCreated({})
       .on('data', async event => {
         ctx.logger.info('app loadWeb3 event ProposalCreated: %j', event);
