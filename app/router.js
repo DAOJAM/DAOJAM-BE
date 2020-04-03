@@ -295,6 +295,10 @@ module.exports = app => {
   router.delete('/minetoken/:id/teamMemberRemove', passport.authorize, controller.mineToken.teamMemberRemove);
   // 获取所有队员
   router.get('/minetoken/:id/teamMember', passport.verify, controller.mineToken.teamMember);
+  // 邀请列表（被邀请人的列表）
+  router.get('/teamMemberInviteList', passport.verify, controller.mineToken.teamMemberInviteList);
+  // 邀请同意或删除（被邀请人的操作）
+  router.post('/teamMemberInviteUser', passport.authorize, controller.mineToken.teamMemberInviteUser);
   // --------------- 团队管理 end ------------------
 
 
