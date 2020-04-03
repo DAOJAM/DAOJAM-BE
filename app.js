@@ -21,9 +21,10 @@ class Bootstrapper {
     const web3 = new Web3(HttpProvider);
     web3.setProvider(WebsocketProvider);
     const contract = new web3.eth.Contract(QVVotingJSON.abi, contractAddress);
+    ctx.logger.info('app loadWeb3 contract: %j', contract);
     contract.events.ProposalCreated({})
       .on('data', async event => {
-        console.log(event);
+        ctx.logger.info('app loadWeb3 event ProposalCreated: %j', event);
         // const { creator, ProposalID, description, votingTimeInHours }
         const { ProposalID, name, description, creator } = event.returnValues;
         const blockNumber = event.blockNumber;
@@ -37,9 +38,12 @@ class Bootstrapper {
           owner: creator,
         });
       })
-      .on('error', console.error);
+      .on('error', error => {
+        ctx.logger.error('app loadWeb3 event ProposalCreated: %j', error);
+      });
     contract.events.VoteCasted({})
       .on('data', async event => {
+        ctx.logger.info('app loadWeb3 event VoteCasted: %j', event);
         console.log(event);
         const { voter, ProposalID, weight } = event.returnValues;
         // create({ pid, voter, weight, block_number, trx })
@@ -53,7 +57,9 @@ class Bootstrapper {
           trx,
         });
       })
-      .on('error', console.error);
+      .on('error', error => {
+        ctx.logger.error('app loadWeb3 event VoteCasted: %j', error);
+      });
   }
 
   async loadCache() {
