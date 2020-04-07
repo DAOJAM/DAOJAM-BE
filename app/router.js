@@ -491,5 +491,9 @@ module.exports = app => {
 
   router.get('/daojam/project', passport.verify, controller.project.index);
   router.get('/daojam/project/:id', passport.verify, controller.project.show);
+
+  router.post('/daojam/near/mint', passport.authorize, controller.near.mint);
+  router.post('/daojam/near/createProposal', passport.authorize, controller.near.createProposal);
+  router.post('/daojam/near/vote', passport.authorize, controller.near.vote);
 };
 
