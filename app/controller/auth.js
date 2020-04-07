@@ -54,6 +54,10 @@ class AuthController extends Controller {
       flag = this.service.ethereum.signatureService.verifyAuth(sign, msgParams, publickey);
       //
       username = publickey;
+    } else if (platform === 'near') {
+      console.log('near', publickey);
+      username = publickey;
+      flag = true;
     } else {
       ctx.body = ctx.msg.unsupportedPlatform;
       return;

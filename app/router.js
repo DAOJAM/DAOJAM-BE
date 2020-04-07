@@ -489,12 +489,16 @@ module.exports = app => {
   router.put('/dao/user/skill', passport.authorize, controller.dao.skill.update);
   router.delete('/dao/user/skill', passport.authorize, controller.dao.skill.destroy);
   router.get('/dao/skill/options', passport.verify, controller.dao.skill.options);
-
+  // -------------------------------- 投票合约API --------------------------------
   router.post('/daojam/voting/mint', passport.authorize, controller.voting.mint);
   router.get('/daojam/voting/balance', passport.authorize, controller.voting.balance);
 
   router.get('/daojam/project', passport.verify, controller.project.index);
   router.get('/daojam/project/:id', passport.verify, controller.project.show);
+
+  router.post('/daojam/near/mint', passport.authorize, controller.near.mint);
+  router.post('/daojam/near/createProposal', passport.authorize, controller.near.createProposal);
+  router.post('/daojam/near/vote', passport.authorize, controller.near.vote);
   // -------------------------------- 邮件订阅API --------------------------------
   router.post('/email/subscriber/:email', passport.verify, controller.user.setEmailSubscriber);
 

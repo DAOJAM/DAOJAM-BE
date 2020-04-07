@@ -7,18 +7,16 @@ class VotingController extends Controller {
    */
   async mint() {
     const ctx = this.ctx;
-    // 需要根据用户id查找用户的address
-    // const uid = ctx.user.id;
-    // const { address } = ctx.request.body;
     const amount = 100; // 每天可领赠票的数量
-    const user = await this.service.account.binding.get(ctx.user.id, 'eth');
+    const user = await this.service.account.binding.get(ctx.user.id, 'near');
     if (!user) {
       ctx.body = ctx.msg.failure;
       return;
     }
-    const result = await this.service.voting._mint(user.account, amount);
+    const result = await this.service.nearprotocol.mint(user.account, amount);
+    // const result = await this.service.voting._mint(user.account, amount);
     await this.service.mintLog.create({
-      uid: ctx.user.id, address: user.account, daot: amount, block_number: result.blockNumber, trx: result.transactionHash,
+      uid: ctx.user.id, address: user.account, daot: amount, block_number: 0, trx: '0',
     });
     ctx.body = {
       ...ctx.msg.success,
@@ -27,7 +25,7 @@ class VotingController extends Controller {
   }
   async balance() {
     const ctx = this.ctx;
-    const user = await this.service.account.binding.get(ctx.user.id, 'eth');
+    const user = await this.service.account.binding.get(ctx.user.id, 'near');
     if (!user) {
       ctx.body = {
         ...ctx.msg.success,
@@ -35,7 +33,7 @@ class VotingController extends Controller {
       };
       return;
     }
-    const balance = await this.service.voting.balance(user.account);
+    const balance = await this.service.nearprotocol.balance(user.account);
     ctx.body = {
       ...ctx.msg.success,
       data: balance,
