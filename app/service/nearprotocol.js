@@ -46,7 +46,7 @@ class NearService extends Service {
     return contract;
   } */
   async mint(name, amount = 100) {
-    const contract = this.ctx.nearContract;
+    const contract = this.app.nearcontract;
     const res = await contract.mint({
       name,
       amount,
@@ -54,18 +54,18 @@ class NearService extends Service {
     return res;
   }
   async balance(name) {
-    const contract = this.ctx.nearContract;
+    const contract = this.app.nearcontract;
     const res = await contract.balance_of({ name });
     return res;
   }
   async getProposalCount() {
-    const contract = this.ctx.nearContract;
+    const contract = this.app.nearcontract;
     const res = await contract.get_proposal_count();
     return res;
   }
   async getProposal(proposal_id) {
     try {
-      const contract = this.ctx.nearContract;
+      const contract = this.app.nearcontract;
       const result = await contract.get_proposal({
         proposal_id,
       });
