@@ -21,6 +21,7 @@ services:
     volumes:
       - /usr/local/daojam-testing/backend-config/config.local.js:/usr/src/app/config/config.default.js
       - /usr/local/daojam-testing/backend-config/apiaccesstoken.js:/usr/src/app/config/apiaccesstoken.js
+      - /usr/local/daojam-testing/backend-config/shellteo.json:/usr/src/neardev/default/shellteo.json
     ports:
       - 7652:7001
     networks:
