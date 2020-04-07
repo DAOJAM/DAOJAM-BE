@@ -939,7 +939,7 @@ class MineTokenService extends Service {
       let countSqlParams = [];
       if (note === 'apply') {
         // 申请列表
-        sql = `SELECT m.uid, m.note, m.contact, m.content, u.nickname, u.username, u.avatar
+        sql = `SELECT m.uid, m.note, m.contact, m.content, m.create_time, u.nickname, u.username, u.avatar
                   FROM minetoken_teams m, users u 
                   WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
         sqlParams = [tokenId, 0, 'apply'];
@@ -948,7 +948,7 @@ class MineTokenService extends Service {
         countSqlParams = [tokenId, 0, 'apply'];
       } else if (note === 'invite') {
         // 邀请列表
-        sql = `SELECT m.uid, m.note, u.nickname, u.username, u.avatar
+        sql = `SELECT m.uid, m.note, m.create_time, u.nickname, u.username, u.avatar
                   FROM minetoken_teams m, users u 
                   WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
         sqlParams = [tokenId, 0, 'invite'];
@@ -979,6 +979,96 @@ class MineTokenService extends Service {
           list: selectResult
         }
       }
+
+    } catch (e) {
+      this.ctx.logger.error(`teamMember error: ${e}`);
+      return {
+        code: -1
+      }
+    }
+  }
+  // 邀请列表（被邀请人的列表）
+  async teamMemberInviteList(userId) {
+    try {
+      // 邀请列表
+      const sql = `SELECT m.token_id, m.create_time, m.uid, t.logo, t.symbol, t.name
+                    FROM minetoken_teams m, minetokens t
+                    WHERE m.uid = ? AND m.status = ? AND m.note = ? AND m.token_id = t.id;`;
+      const sqlParams = [userId, 0, 'invite'];
+
+      const countSql = `SELECT COUNT(1) as count FROM minetoken_teams WHERE uid = ? AND status = ? AND note = ?;`;
+      const countSqlParams = [userId, 0, 'invite'];
+
+      // 查询列表
+      const selectResult = await this.app.mysql.query(sql, sqlParams);
+
+      // 统计 count
+      const countResult = await this.app.mysql.query(countSql, countSqlParams);
+
+      return {
+        code: 0,
+        data: {
+          count: countResult[0].count || 0,
+          list: selectResult
+        }
+      }
+    } catch (e) {
+      this.ctx.logger.error(`teamMemberInviteList error: ${e}`);
+      return {
+        code: -1
+      }
+    }
+  }
+  // 邀请同意或删除（被邀请人的操作）
+  async teamMemberInviteUser(userId, teamMember) {
+    if (userId !== Number(teamMember.uid)) {
+      return {
+        code: -1
+      }
+    }
+
+    try {
+      if (teamMember.from === 'accept') {
+        const updateRow = {
+          'status': 1,
+        };
+        const updateOptions = {
+          where: {
+            'token_id': teamMember.token_id,
+            'uid': teamMember.uid,
+            'note': 'invite', // 只负责相应的修改
+          }
+        };
+        console.log(updateOptions)
+
+        const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
+
+        if (updateResult.affectedRows === 1) {
+          return {
+            code: 0,
+          }
+        } else {
+          return {
+            code: -1
+          }
+        }
+      } else if (teamMember.from === 'deny') {
+        this.app.mysql.delete('minetoken_teams', {
+          token_id: teamMember.token_id,
+          uid: teamMember.uid,
+          'status': 0,
+          note: 'invite'
+        });
+
+        return {
+          code: 0,
+        }
+      } else {
+        return {
+          code: -1
+        }
+      }
+
 
     } catch (e) {
       this.ctx.logger.error(`teamMember error: ${e}`);
