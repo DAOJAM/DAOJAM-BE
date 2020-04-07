@@ -295,6 +295,10 @@ module.exports = app => {
   router.delete('/minetoken/:id/teamMemberRemove', passport.authorize, controller.mineToken.teamMemberRemove);
   // 获取所有队员
   router.get('/minetoken/:id/teamMember', passport.verify, controller.mineToken.teamMember);
+  // 邀请列表（被邀请人的列表）
+  router.get('/teamMemberInviteList', passport.verify, controller.mineToken.teamMemberInviteList);
+  // 邀请同意或删除（被邀请人的操作）
+  router.post('/teamMemberInviteUser', passport.authorize, controller.mineToken.teamMemberInviteUser);
   // --------------- 团队管理 end ------------------
 
 
@@ -485,7 +489,7 @@ module.exports = app => {
   router.put('/dao/user/skill', passport.authorize, controller.dao.skill.update);
   router.delete('/dao/user/skill', passport.authorize, controller.dao.skill.destroy);
   router.get('/dao/skill/options', passport.verify, controller.dao.skill.options);
-
+  // -------------------------------- 投票合约API --------------------------------
   router.post('/daojam/voting/mint', passport.authorize, controller.voting.mint);
   router.get('/daojam/voting/balance', passport.authorize, controller.voting.balance);
 
@@ -495,5 +499,13 @@ module.exports = app => {
   router.post('/daojam/near/mint', passport.authorize, controller.near.mint);
   router.post('/daojam/near/createProposal', passport.authorize, controller.near.createProposal);
   router.post('/daojam/near/vote', passport.authorize, controller.near.vote);
+  // -------------------------------- 邮件订阅API --------------------------------
+  router.post('/email/subscriber/:email', passport.verify, controller.user.setEmailSubscriber);
+
+  // ------------------- 任务 --------------------------
+  router.get('/task', passport.verify, controller.task.task);
+  router.post('/task', passport.authorize, controller.task.updateTask);
+  router.get('/taskTeam', passport.verify, controller.task.taskTeam);
+  // ------------------- 任务 end --------------------------
 };
 
