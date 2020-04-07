@@ -4,13 +4,14 @@ const Service = require('egg').Service;
 const moment = require('moment');
 
 class VotingLogService extends Service {
-  async create({ pid, voter, weight, block_number, trx }) {
+  async create({ pid, uid, voter, weight, block_number, trx }) {
     this.logger.info('Service: votingLog:: create start');
     const now = moment().format('YYYY-MM-DD HH:mm:ss');
-    const user = await this.app.mysql.get('user_accounts', { platform: 'eth', account: voter });
-    console.log('user', user);
-    let uid = 0;
-    if (user) uid = user.uid;
+    if (!uid) {
+      const user = await this.app.mysql.get('user_accounts', { platform: 'eth', account: voter });
+      if (user) uid = user.uid;
+      else uid = 0;
+    }
     const result = await this.app.mysql.insert('daojam_vote_log', {
       pid, voter, weight, block_number, trx,
       uid,
