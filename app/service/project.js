@@ -42,14 +42,14 @@ class ProjectService extends Service {
       list: result[0],
     };
   }
-  async get(pid) {
-    const p = await this.app.mysql.get('minetokens', { pid });
+  async get(id) {
+    const p = await this.app.mysql.get('minetokens', { id });
     const sql = `
       SELECT IFNULL(SUM(weight), 0) as weight, IFNULL(SUM(POW(weight,2)), 0) as daot 
       FROM daojam_vote_log
       WHERE pid = :pid;`;
     const weight = await this.app.mysql.query(sql, {
-      pid,
+      pid: p.pid,
     });
     return {
       ...p,
