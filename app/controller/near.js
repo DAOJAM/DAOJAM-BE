@@ -37,7 +37,7 @@ class NearController extends Controller {
       };
       return;
     }
-    const existence = await this.app.mysql.get('daojam_project', { pid: id });
+    const existence = await this.app.mysql.get('minetokens', { pid: id });
     if (existence) {
       ctx.body = {
         ...ctx.msg.failure,
