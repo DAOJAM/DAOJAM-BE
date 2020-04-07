@@ -13,9 +13,9 @@ class TaskController extends Controller {
 
   async taskTeam() {
     const { ctx } = this;
-    const userId = ctx.user.id;
-    if (userId) {
-      const result = await this.service.task.taskTeam(userId);
+    const tokenId = parseInt(ctx.params.id);
+    if (tokenId) {
+      const result = await this.service.task.taskTeam(tokenId);
       ctx.body = {
         ...this.ctx.msg.success,
         data: result
