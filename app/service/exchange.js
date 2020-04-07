@@ -259,13 +259,13 @@ class ExchangeService extends Service {
         return false;
     }
 
-    let filterBookmarks =  ['', '']
+    let filterBookmarks = [ '', '' ];
     if (bookmarkUid) {
       if (Number.isNaN(bookmarkUid)) return false;
       filterBookmarks = [
         ' JOIN minetoken_bookmarks b ON b.token_id = t1.id AND b.uid = :bookmarkUid',
-        ' JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :bookmarkUid'
-      ]
+        ' JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :bookmarkUid',
+      ];
     }
 
     let sql, parameters;
