@@ -46,6 +46,7 @@ class NearService extends Service {
     return contract;
   } */
   async mint(name, amount = 100) {
+    amount = parseInt(amount);
     const contract = this.app.nearcontract;
     const res = await contract.mint({
       name,
@@ -64,6 +65,7 @@ class NearService extends Service {
     return res;
   }
   async getProposal(proposal_id) {
+    proposal_id = parseInt(proposal_id);
     try {
       const contract = this.app.nearcontract;
       const result = await contract.get_proposal({
