@@ -328,17 +328,20 @@ class AccountBindingService extends Service {
   /**
     * DAOJam 特色函数，详见：https://github.com/DAOJAM/DAO_Jam/issues/34
     * 目前只检测是不是绑定 GitHub 和 邮箱 - Frank
+    * 现在改为暂时只检查你的 Near 绑定状态
     * @param {number} uid DAOJam 用户 ID
     */
   async isVerified(uid) {
     // 同时查询
-    const [ github, email, eth ] = await Promise.all([
-      this.get(uid, 'github'),
-      this.get(uid, 'email'),
-      this.get(uid, 'eth'),
+    const [ near ] = await Promise.all([
+      // this.get(uid, 'github'),
+      // this.get(uid, 'email'),
+      // this.get(uid, 'eth'),
+      this.get(uid, 'near'),
     ]);
     // 目前只检测是不是绑定 GitHub 和 邮箱，后续有需要再定制这个条件
-    const verified = Boolean(github && email && eth);
+    // 现在改为暂时只检查你的 Near 绑定状态
+    const verified = Boolean(near);
     return { verified };
   }
 }
