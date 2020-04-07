@@ -1,6 +1,7 @@
 const Web3 = require('web3');
-const QVVotingJSON = require('./app/service/ethereum/abi/QVVoting.json');
-const contractAddress = '0x7260e769005Fec7A9ba7415AdF45D69AB126a33d';
+// const QVVotingJSON = require('./app/service/ethereum/abi/QVVoting.json');
+// const contractAddress = '0x7260e769005Fec7A9ba7415AdF45D69AB126a33d';
+const nearlib = require('nearlib');
 
 class Bootstrapper {
 
@@ -11,7 +12,35 @@ class Bootstrapper {
   async didReady() {
     await this.loadCache();
     const ctx = await this.app.createAnonymousContext();
-    await this.loadWeb3(ctx);
+    // await this.loadWeb3(ctx);
+    await this.loadNear(ctx);
+  }
+  async loadNear(ctx) {
+    const CONTRACT_NAME = 'syntest2';
+    const accountId = 'shellteo';
+    const nearConfig = {
+      networkId: 'default',
+      nodeUrl: 'https://rpc.nearprotocol.com',
+      contractName: CONTRACT_NAME,
+      walletUrl: 'https://wallet.nearprotocol.com',
+      helperUrl: 'https://near-contract-helper.onrender.com',
+    };
+    const keyStore = new nearlib.keyStores.UnencryptedFileSystemKeyStore('neardev');
+    const near = await nearlib.connect({
+      deps: {
+        keyStore,
+      },
+      ...nearConfig,
+    });
+    // const walletConnection = new nearlib.WalletConnection(near);
+    const contract = await near.loadContract(nearConfig.contractName, {
+      viewMethods: [ 'get_proposal', 'get_create_cost', 'get_proposal_count', 'get_proposal_status', 'get_proposal_expiration_time', 'count_votes', 'balance_of' ],
+      changeMethods: [ 'create_proposal', 'set_proposal_to_tally', 'set_proposal_to_ended', 'set_create_cost', 'cast_vote', 'mint' ],
+      sender: accountId,
+    });
+    ctx.near = near;
+    ctx.nearContract = contract;
+    // ctx.walletConnection = walletConnection;
   }
   async loadWeb3(ctx) {
     const ApiEndpoint = 'https://rinkeby.infura.io/v3/e25357f98f9446e3bbdca110b0fefdf1';
