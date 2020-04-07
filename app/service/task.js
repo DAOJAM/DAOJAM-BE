@@ -29,20 +29,15 @@ class TaskService extends Service {
   }
 
   // 任务列表
-  async taskTeam(userId) {
-    const token = await this.getByUserId(userId);
-    if (!token) {
-      return []
-    }
-
+  async taskTeam(tokenId) {
     try {
       return await this.app.mysql.select('minetoken_tasks', {
         where: {
-          "token_id": token.id
+          "token_id": tokenId
         }
       });
     } catch (e) {
-      console.log(e)
+      console.log(e);
       this.ctx.logger.error(`task fail: ${e}`);
       return []
     }
