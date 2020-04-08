@@ -468,6 +468,87 @@ class MineTokenService extends Service {
     }
   }
 
+  // ---------- 投票记录 --------------
+  async supporters(tokenId, page= 1, pagesize= 20) {
+    try {
+      let result = null;
+      if (typeof page === 'string') page = parseInt(page);
+      if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
+
+      let sql = `SELECT d.uid, SUM(d.weight) as weight, u.avatar, u.nickname, u.username 
+                FROM daojam_vote_log d, users u 
+                WHERE d.pid = ? AND d.uid = u.id
+                GROUP BY pid, uid 
+                ORDER BY weight DESC LIMIT ?, ?;`;
+
+      result = await this.app.mysql.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
+
+      // 统计 count
+      const sqlCount = `SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;`;
+      const countResult = await this.app.mysql.query(sqlCount, [ tokenId ]);
+      return {
+        count: countResult[0].count || 0,
+        list: result,
+      };
+    } catch (e) {
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+  async votes(tokenId, page= 1, pagesize= 20) {
+    try {
+      let result = null;
+      if (typeof page === 'string') page = parseInt(page);
+      if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
+
+      let sql = `SELECT d.uid, d.weight, d.create_time, u.avatar, u.nickname, u.username 
+                FROM daojam_vote_log d, users u WHERE pid = ? AND d.uid = u.id
+                ORDER BY d.create_time DESC LIMIT ?, ?;`;
+
+      result = await this.app.mysql.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
+
+      // 统计 count
+      const countResult = await this.app.mysql.query(`SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ?;`, [tokenId]);
+      return {
+        count: countResult[0].count || 0,
+        list: result,
+      };
+    } catch (e) {
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+  async charts(tokenId, page= 1, pagesize= 20) {
+    try {
+      if (typeof page === 'string') page = parseInt(page);
+      if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
+
+      // 一天
+      let daySql = `SELECT DATE_FORMAT(create_time,'%H:00:00') AS create_time, SUM(weight) as weight
+                    FROM daojam_vote_log 
+                    WHERE pid = ? AND create_time >= (NOW() - INTERVAL 24 HOUR) 
+                    GROUP BY HOUR(create_time) ORDER BY HOUR(create_time);`;
+
+      const dayResult = await this.app.mysql.query(daySql, [ tokenId ]);
+
+      // 一周
+      let weekSql = `SELECT DATE_FORMAT(create_time,'%Y-%m-%d') as create_time, SUM(weight) as weight FROM daojam_vote_log 
+                    WHERE pid = ? AND DATE_SUB(NOW(),INTERVAL 7 DAY) <= DATE(create_time) 
+                    GROUP BY DATE_FORMAT(create_time,'%Y-%m-%d') 
+                    ORDER BY create_time DESC;`;
+
+      const weekResult = await this.app.mysql.query(weekSql, [tokenId]);
+      return {
+        day: dayResult,
+        week: weekResult,
+      };
+    } catch (e) {
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+
+
   // --------------- 团队管理 ------------------
   // 邀请队员
   async teamMemberInvite(userId, tokenId, teamMember) {

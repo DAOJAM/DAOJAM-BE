@@ -211,6 +211,38 @@ class MineTokenController extends Controller {
     }
   }
 
+  // --------------------- 投票记录 -------------------------
+  async supporters() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { page, pagesize } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.supporters(tokenId, page, pagesize);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  async votes() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { page, pagesize } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.votes(tokenId, page, pagesize);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  async charts() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { page, pagesize } = this.ctx.query;
+    const result = await ctx.service.token.mineToken.charts(tokenId, page, pagesize);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+
   // --------------- 团队管理 ------------------
   // 邀请队员
   async teamMemberInvite() {
