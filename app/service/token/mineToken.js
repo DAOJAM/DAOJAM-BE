@@ -471,6 +471,9 @@ class MineTokenService extends Service {
   // ---------- 投票记录 --------------
   async supporters(tokenId, page= 1, pagesize= 20) {
     try {
+      const { pid } = await this.get(tokenId);
+      tokenId = pid;
+
       let result = null;
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
@@ -497,6 +500,9 @@ class MineTokenService extends Service {
   }
   async votes(tokenId, page= 1, pagesize= 20) {
     try {
+      const { pid } = await this.get(tokenId);
+      tokenId = pid;
+
       let result = null;
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
@@ -520,6 +526,9 @@ class MineTokenService extends Service {
   }
   async charts(tokenId, page= 1, pagesize= 20) {
     try {
+      const { pid } = await this.get(tokenId);
+      tokenId = pid;
+
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
 
