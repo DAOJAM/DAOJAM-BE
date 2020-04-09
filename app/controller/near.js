@@ -28,7 +28,7 @@ class NearController extends Controller {
   }
   async createProposal() {
     const ctx = this.ctx;
-    const { id } = ctx.request.body;
+    const { id, txHash, blockHash } = ctx.request.body;
     const p = await this.service.nearprotocol.getProposal(id);
     if (!p) {
       ctx.body = {
@@ -51,7 +51,8 @@ class NearController extends Controller {
       name,
       description,
       block_number: 0,
-      trx: '0',
+      trx: txHash,
+      block_hash: blockHash,
       owner: creator,
     });
     ctx.body = {
@@ -61,7 +62,7 @@ class NearController extends Controller {
   }
   async vote() {
     const ctx = this.ctx;
-    const { id } = ctx.request.body;
+    const { id, txHash, blockHash } = ctx.request.body;
     const uid = ctx.user.id;
     const user = await this.service.account.binding.get(uid, 'near');
     if (!user) {
@@ -101,8 +102,18 @@ class NearController extends Controller {
       voter: user.account,
       weight: voterObj.weight,
       block_number: 0,
-      trx: '0',
+      trx: txHash,
+      block_hash: blockHash,
     });
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  async votingLog() {
+    const ctx = this.ctx;
+    const { pid, pageindex = 1, pagesize = 10 } = ctx.query;
+    const result = await this.service.votingLog.listByPid(pid, parseInt(pageindex), parseInt(pagesize));
     ctx.body = {
       ...ctx.msg.success,
       data: result,

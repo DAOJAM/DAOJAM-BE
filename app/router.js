@@ -499,6 +499,7 @@ module.exports = app => {
   router.post('/daojam/near/mint', passport.authorize, controller.near.mint);
   router.post('/daojam/near/createProposal', passport.authorize, controller.near.createProposal);
   router.post('/daojam/near/vote', passport.authorize, controller.near.vote);
+  router.get('/daojam/near/votinglog', passport.verify, controller.near.votingLog);
   // -------------------------------- 邮件订阅API --------------------------------
   router.post('/email/subscriber/:email', passport.verify, controller.user.setEmailSubscriber);
 
