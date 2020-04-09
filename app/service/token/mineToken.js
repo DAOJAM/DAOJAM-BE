@@ -498,7 +498,7 @@ class MineTokenService extends Service {
       return -1;
     }
   }
-  async votes(tokenId, page= 1, pagesize= 20) {
+  async votes(tokenId, page = 1, pagesize = 20) {
     try {
       const { pid } = await this.get(tokenId);
       tokenId = pid;
@@ -507,14 +507,14 @@ class MineTokenService extends Service {
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
 
-      let sql = `SELECT d.uid, d.weight, d.create_time, u.avatar, u.nickname, u.username 
+      const sql = `SELECT d.uid, d.weight, d.create_time, d.trx, u.avatar, u.nickname, u.username 
                 FROM daojam_vote_log d, users u WHERE pid = ? AND d.uid = u.id
                 ORDER BY d.create_time DESC LIMIT ?, ?;`;
 
       result = await this.app.mysql.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
 
       // 统计 count
-      const countResult = await this.app.mysql.query(`SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ?;`, [tokenId]);
+      const countResult = await this.app.mysql.query('SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ?;', [ tokenId ]);
       return {
         count: countResult[0].count || 0,
         list: result,
@@ -524,7 +524,7 @@ class MineTokenService extends Service {
       return -1;
     }
   }
-  async charts(tokenId, page= 1, pagesize= 20) {
+  async charts(tokenId, page = 1, pagesize = 20) {
     try {
       const { pid } = await this.get(tokenId);
       tokenId = pid;
@@ -533,7 +533,7 @@ class MineTokenService extends Service {
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
 
       // 一天
-      let daySql = `SELECT DATE_FORMAT(create_time,'%H:00:00') AS create_time, SUM(weight) as weight
+      const daySql = `SELECT DATE_FORMAT(create_time,'%H:00:00') AS create_time, SUM(weight) as weight
                     FROM daojam_vote_log 
                     WHERE pid = ? AND create_time >= (NOW() - INTERVAL 24 HOUR) 
                     GROUP BY HOUR(create_time) ORDER BY HOUR(create_time);`;
@@ -541,60 +541,60 @@ class MineTokenService extends Service {
       const dayResult = await this.app.mysql.query(daySql, [ tokenId ]);
 
       // 一周
-      let weekSql = `SELECT DATE_FORMAT(create_time,'%Y-%m-%d') as create_time, SUM(weight) as weight FROM daojam_vote_log 
+      const weekSql = `SELECT DATE_FORMAT(create_time,'%Y-%m-%d') as create_time, SUM(weight) as weight FROM daojam_vote_log 
                     WHERE pid = ? AND DATE_SUB(NOW(),INTERVAL 7 DAY) <= DATE(create_time) 
                     GROUP BY DATE_FORMAT(create_time,'%Y-%m-%d') 
                     ORDER BY create_time ASC;`;
 
-      const weekResult = await this.app.mysql.query(weekSql, [tokenId]);
+      const weekResult = await this.app.mysql.query(weekSql, [ tokenId ]);
 
       // 格式话一天的时间
       const day = [];
-      let dayList = [];
+      const dayList = [];
       for (let i = 0; i < 24; i++) {
-       if (i < 10) {
-         day.push(`0${i}:00:00`);
-       } else {
-         day.push(`${i}:00:00`);
-       }
+        if (i < 10) {
+          day.push(`0${i}:00:00`);
+        } else {
+          day.push(`${i}:00:00`);
+        }
       }
 
       for (let i = 0; i < day.length; i++) {
         const result = dayResult.filter(item => item.create_time === day[i]);
         if (result.length >= 1) {
           dayList.push({
-            'create_time': day[i],
-            'weight': result[0].weight,
+            create_time: day[i],
+            weight: result[0].weight,
           });
         } else {
           dayList.push({
-            'create_time': day[i],
-            'weight': 0,
-          })
+            create_time: day[i],
+            weight: 0,
+          });
         }
       }
 
       // 格式化一周的时间
-      let week = [];
-      let weekList = [];
+      const week = [];
+      const weekList = [];
       for (let i = 6; i >= 0; i--) {
-        let dayCalendar = moment().subtract(i, 'days');
-        let day = moment(dayCalendar).format('YYYY-MM-DD');
-        week.push(day)
+        const dayCalendar = moment().subtract(i, 'days');
+        const day = moment(dayCalendar).format('YYYY-MM-DD');
+        week.push(day);
       }
 
       for (let i = 0; i < week.length; i++) {
         const result = weekResult.filter(item => item.create_time === week[i]);
         if (result.length >= 1) {
           weekList.push({
-            'create_time': week[i],
-            'weight': result[0].weight,
+            create_time: week[i],
+            weight: result[0].weight,
           });
         } else {
           weekList.push({
-            'create_time': week[i],
-            'weight': 0,
-          })
+            create_time: week[i],
+            weight: 0,
+          });
         }
       }
 
@@ -644,15 +644,15 @@ class MineTokenService extends Service {
     // 没有同意加入团队 继续发送请求并且更新数据
     const sendInviteAndUpdateDate = async () => {
       const updateRow = {
-        'note': 'invite', // 覆盖来源
-        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
-        'contact': '',
-        'content': '',
+        note: 'invite', // 覆盖来源
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+        contact: '',
+        content: '',
       };
       const updateOptions = {
         where: {
-          'token_id': tokenId,
-          'uid': teamMember.uid
+          token_id: tokenId,
+          uid: teamMember.uid
         }
       };
       const updateResult = await conn.update('minetoken_teams', updateRow, updateOptions);
@@ -671,13 +671,13 @@ class MineTokenService extends Service {
     // 如果没有记录
     const sendFirstInvite = async () => {
       const insertResult = await conn.insert('minetoken_teams', {
-        'token_id': tokenId,
-        'uid': teamMember.uid,
-        'status': 0,
-        'note': 'invite',
-        'contact': '',
-        'content': '',
-        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+        token_id: tokenId,
+        uid: teamMember.uid,
+        status: 0,
+        note: 'invite',
+        contact: '',
+        content: '',
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
       });
       await conn.commit();
 
@@ -693,8 +693,8 @@ class MineTokenService extends Service {
     try {
       // 查询是否已经邀请过了
       const result = await conn.get('minetoken_teams', {
-        'token_id': tokenId,
-        'uid': teamMember.uid,
+        token_id: tokenId,
+        uid: teamMember.uid,
       });
 
       // 查询是否已有数据
@@ -761,15 +761,15 @@ class MineTokenService extends Service {
     // 没有同意加入团队 继续发送请求并且更新数据
     const sendApplyAndUpdateDate = async () => {
       const updateRow = {
-        'note': 'apply', // 覆盖来源
-        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
-        'contact': teamMember.contact,
-        'content': teamMember.content,
+        note: 'apply', // 覆盖来源
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+        contact: teamMember.contact,
+        content: teamMember.content,
       };
       const updateOptions = {
         where: {
-          'token_id': tokenId,
-          'uid': teamMember.uid,
+          token_id: tokenId,
+          uid: teamMember.uid,
         }
       };
       const updateResult = await conn.update('minetoken_teams', updateRow, updateOptions);
@@ -788,13 +788,13 @@ class MineTokenService extends Service {
     // 如果没有记录
     const sendFirstApply = async () => {
       const insertResult = await conn.insert('minetoken_teams', {
-        'token_id': tokenId,
-        'uid': teamMember.uid,
-        'status': 0,
-        'note': 'apply',
-        'contact': teamMember.contact,
-        'content': teamMember.content,
-        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+        token_id: tokenId,
+        uid: teamMember.uid,
+        status: 0,
+        note: 'apply',
+        contact: teamMember.contact,
+        content: teamMember.content,
+        create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
       });
       await conn.commit();
 
@@ -810,8 +810,8 @@ class MineTokenService extends Service {
     try {
       // 查询是否已经邀申请过了
       const result = await conn.get('minetoken_teams', {
-        'token_id': tokenId,
-        'uid': teamMember.uid,
+        token_id: tokenId,
+        uid: teamMember.uid,
       });
 
       // 查询是否已有数据
@@ -860,13 +860,13 @@ class MineTokenService extends Service {
     // 同意加入团队
     const successJoin = async () => {
       const updateRow = {
-        'status': 1,
+        status: 1,
       };
       const updateOptions = {
         where: {
-          'token_id': tokenId,
-          'uid': teamMember.uid,
-          'note': 'apply', // 只负责相应的修改
+          token_id: tokenId,
+          uid: teamMember.uid,
+          note: 'apply', // 只负责相应的修改
         }
       };
       const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
@@ -883,9 +883,9 @@ class MineTokenService extends Service {
     try {
       // 查询记录
       const result = await this.app.mysql.get('minetoken_teams', {
-        'token_id': tokenId,
-        'uid': teamMember.uid,
-        'note': 'apply', // 只负责相应的修改
+        token_id: tokenId,
+        uid: teamMember.uid,
+        note: 'apply', // 只负责相应的修改
       });
 
       if (result) {
@@ -943,13 +943,13 @@ class MineTokenService extends Service {
     // 同意加入团队
     const successJoin = async () => {
       const updateRow = {
-        'status': 1,
+        status: 1,
       };
       const updateOptions = {
         where: {
-          'token_id': tokenId,
-          'uid': userId,
-          'note': 'invite', // 只负责相应的修改
+          token_id: tokenId,
+          uid: userId,
+          note: 'invite', // 只负责相应的修改
         }
       };
       const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
@@ -967,9 +967,9 @@ class MineTokenService extends Service {
     try {
       // 查询记录
       const result = await this.app.mysql.get('minetoken_teams', {
-        'token_id': tokenId,
-        'uid': userId,
-        'note': 'invite', // 只负责相应的修改
+        token_id: tokenId,
+        uid: userId,
+        note: 'invite', // 只负责相应的修改
       });
 
       if (result) {
@@ -1024,8 +1024,8 @@ class MineTokenService extends Service {
     try {
       // 查询数据
       const getResult = await conn.get(`minetoken_teams`, {
-        'token_id': tokenId,
-        'uid': teamMember.uid,
+        token_id: tokenId,
+        uid: teamMember.uid,
       });
 
       if (getResult) {
@@ -1040,9 +1040,9 @@ class MineTokenService extends Service {
           // 邀请删除 申请删除
           // teamMember.note 的作用是增加删除条件 防止删串
           await conn.delete('minetoken_teams', {
-            'token_id': tokenId,
-            'uid': teamMember.uid,
-            'note': teamMember.note,
+            token_id: tokenId,
+            uid: teamMember.uid,
+            note: teamMember.note,
           });
           await conn.commit();
           return {
@@ -1171,13 +1171,13 @@ class MineTokenService extends Service {
     try {
       if (teamMember.from === 'accept') {
         const updateRow = {
-          'status': 1,
+          status: 1,
         };
         const updateOptions = {
           where: {
-            'token_id': teamMember.token_id,
-            'uid': teamMember.uid,
-            'note': 'invite', // 只负责相应的修改
+            token_id: teamMember.token_id,
+            uid: teamMember.uid,
+            note: 'invite', // 只负责相应的修改
           }
         };
         console.log(updateOptions)
@@ -1197,7 +1197,7 @@ class MineTokenService extends Service {
         this.app.mysql.delete('minetoken_teams', {
           token_id: teamMember.token_id,
           uid: teamMember.uid,
-          'status': 0,
+          status: 0,
           note: 'invite'
         });
 
