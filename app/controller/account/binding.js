@@ -57,6 +57,11 @@ class AccountBindingController extends Controller {
         flag = telegramResult;
         break;
       }
+      case 'near': {
+        username = publickey;
+        flag = true;
+        break;
+      }
       default: {
         ctx.body = ctx.msg.unsupportedPlatform;
         return;
