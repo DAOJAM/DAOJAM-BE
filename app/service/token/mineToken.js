@@ -535,12 +535,63 @@ class MineTokenService extends Service {
       let weekSql = `SELECT DATE_FORMAT(create_time,'%Y-%m-%d') as create_time, SUM(weight) as weight FROM daojam_vote_log 
                     WHERE pid = ? AND DATE_SUB(NOW(),INTERVAL 7 DAY) <= DATE(create_time) 
                     GROUP BY DATE_FORMAT(create_time,'%Y-%m-%d') 
-                    ORDER BY create_time DESC;`;
+                    ORDER BY create_time ASC;`;
 
       const weekResult = await this.app.mysql.query(weekSql, [tokenId]);
+
+      // 格式话一天的时间
+      const day = [];
+      let dayList = [];
+      for (let i = 0; i < 24; i++) {
+       if (i < 10) {
+         day.push(`0${i}:00:00`);
+       } else {
+         day.push(`${i}:00:00`);
+       }
+      }
+
+      for (let i = 0; i < day.length; i++) {
+        const result = dayResult.filter(item => item.create_time === day[i]);
+        if (result.length >= 1) {
+          dayList.push({
+            'create_time': day[i],
+            'weight': result[0].weight,
+          });
+        } else {
+          dayList.push({
+            'create_time': day[i],
+            'weight': 0,
+          })
+        }
+      }
+
+      // 格式化一周的时间
+      let week = [];
+      let weekList = [];
+      for (let i = 6; i >= 0; i--) {
+        let dayCalendar = moment().subtract(i, 'days');
+        let day = moment(dayCalendar).format('YYYY-MM-DD');
+        week.push(day)
+      }
+
+      for (let i = 0; i < week.length; i++) {
+        const result = weekResult.filter(item => item.create_time === week[i]);
+        if (result.length >= 1) {
+          weekList.push({
+            'create_time': week[i],
+            'weight': result[0].weight,
+          });
+        } else {
+          weekList.push({
+            'create_time': week[i],
+            'weight': 0,
+          })
+        }
+      }
+
       return {
-        day: dayResult,
-        week: weekResult,
+        day: dayList,
+        week: weekList,
       };
     } catch (e) {
       this.ctx.logger.error(e);
