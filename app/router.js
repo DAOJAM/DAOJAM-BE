@@ -308,6 +308,8 @@ module.exports = app => {
   router.delete('/minetoken/:id/teamMemberRemove', passport.authorize, controller.mineToken.teamMemberRemove);
   // 获取所有队员
   router.get('/minetoken/:id/teamMember', passport.verify, controller.mineToken.teamMember);
+  // 获取用户加入的项目列表
+  router.get('/user/:id/teams', passport.verify, controller.mineToken.joinedTeamList);
   // 邀请列表（被邀请人的列表）
   router.get('/teamMemberInviteList', passport.verify, controller.mineToken.teamMemberInviteList);
   // 邀请同意或删除（被邀请人的操作）
