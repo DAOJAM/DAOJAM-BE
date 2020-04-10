@@ -7,7 +7,7 @@ class TaskController extends Controller {
     const result = await this.service.task.task();
     this.ctx.body = {
       ...this.ctx.msg.success,
-      data: result
+      data: result,
     };
   }
 
@@ -18,7 +18,7 @@ class TaskController extends Controller {
       const result = await this.service.task.taskTeam(tokenId);
       ctx.body = {
         ...this.ctx.msg.success,
-        data: result
+        data: result,
       };
     } else {
       ctx.body = ctx.msg.failure;
