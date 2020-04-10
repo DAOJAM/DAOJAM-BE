@@ -148,6 +148,13 @@ class MineTokenService extends Service {
    */
   async getToken(parameters) {
     const token = await this.app.mysql.get('minetokens', parameters);
+
+    // Move from this.supporters() based on commit 6167231078f93f3d8af70195c7d3042182b5a74c
+    const sqlCount = `SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;`;
+    const countResult = await this.app.mysql.query(sqlCount, [ token.pid ]);
+
+    token.supporter = countResult[0].count || 0;
+
     return token;
   }
 
@@ -471,26 +478,23 @@ class MineTokenService extends Service {
   // ---------- 投票记录 --------------
   async supporters(tokenId, page= 1, pagesize= 20) {
     try {
-      const { pid } = await this.get(tokenId);
+      const { pid, supporter } = await this.get(tokenId);
       tokenId = pid;
 
       let result = null;
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
 
-      let sql = `SELECT d.uid, SUM(d.weight) as weight, u.avatar, u.nickname, u.username 
-                FROM daojam_vote_log d, users u 
+      let sql = `SELECT d.uid, SUM(d.weight) as weight, u.avatar, u.nickname, u.username
+                FROM daojam_vote_log d, users u
                 WHERE d.pid = ? AND d.uid = u.id
-                GROUP BY pid, uid 
+                GROUP BY pid, uid
                 ORDER BY weight DESC LIMIT ?, ?;`;
 
       result = await this.app.mysql.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
 
-      // 统计 count
-      const sqlCount = `SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;`;
-      const countResult = await this.app.mysql.query(sqlCount, [ tokenId ]);
       return {
-        count: countResult[0].count || 0,
+        count: supporter,
         list: result,
       };
     } catch (e) {
