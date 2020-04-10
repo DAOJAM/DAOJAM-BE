@@ -249,6 +249,17 @@ class UserController extends Controller {
     ctx.body.data = links;
   }
 
+  async votes() {
+    const ctx = this.ctx;
+    const { id } = ctx.params;
+    const { page, pagesize } = this.ctx.query;
+
+    const data = await this.service.user.votes(parseInt(id), page, pagesize);
+
+    ctx.body = ctx.msg.success;
+    ctx.body.data = data;
+  }
+
   async getUserDetails() {
     const ctx = this.ctx;
 
@@ -567,7 +578,7 @@ class UserController extends Controller {
 
   async setEmailSubscriber() {
     const ctx = this.ctx;
-  
+
     const pattern = /^\w+@[a-zA-Z0-9]{2,10}(?:\.[a-z]{2,4}){1,3}$/
     if (!pattern.test(ctx.params.email)) return ctx.body = ctx.msg.paramsError;
 
