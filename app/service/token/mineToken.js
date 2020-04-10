@@ -1222,6 +1222,32 @@ class MineTokenService extends Service {
       }
     }
   }
+
+  // 获取用户参加的项目列表， status: 0 申请中 \ 1 已加入
+  async joinedTeamList(userId, page = 1, pagesize = 20, status = 1) {
+    if (isNaN(userId)) return false;
+
+    const sql = `
+      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot FROM minetokens t1
+      LEFT JOIN daojam_vote_log t2
+      ON t1.pid = t2.pid
+      JOIN minetoken_teams b ON b.token_id = t1.id AND b.uid = :userId AND b.status = :status
+      GROUP BY pid
+      LIMIT :offset, :limit;
+      SELECT count(1) as count FROM minetokens c1
+      JOIN minetoken_teams b ON b.token_id = c1.id AND b.uid = :userId AND b.status = :status`
+    const result = await this.app.mysql.query(sql, {
+      offset: (page - 1) * pagesize,
+      limit: pagesize,
+      userId,
+      status
+    });
+    return {
+      count: result[1][0].count,
+      list: result[0],
+    };
+  }
+
   // --------------- 团队管理 end ------------------
 
 
