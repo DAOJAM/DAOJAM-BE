@@ -356,6 +356,23 @@ class MineTokenController extends Controller {
       ctx.body.message = result.message;
     }
   }
+  // 获取用户加入的项目列表
+  async joinedTeamList() {
+    const ctx = this.ctx;
+    const userId = parseInt(ctx.params.id);
+    const { pagesize = 10, page = 1, } = ctx.query;
+
+    const result = await ctx.service.token.mineToken.joinedTeamList(userId ,parseInt(page), parseInt(pagesize), 1);
+    if (result === false) {
+      ctx.status = 400;
+      ctx.body = ctx.msg.paramsError;
+    }
+
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
   // 邀请列表（被邀请人的列表）
   async teamMemberInviteList() {
     const ctx = this.ctx;
