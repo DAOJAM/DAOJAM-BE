@@ -72,33 +72,33 @@ class MineTokenService extends Service {
 
     try {
       // 查询
-      const sqlSelect = `SELECT * FROM minetoken_teams WHERE token_id = ? AND uid = ?;`;
-      const SelectResult = await conn.query(sqlSelect, [tokenId, uid]);
+      const sqlSelect = 'SELECT * FROM minetoken_teams WHERE token_id = ? AND uid = ?;';
+      const SelectResult = await conn.query(sqlSelect, [ tokenId, uid ]);
       if (SelectResult.length === 0) {
         // 没有记录 插入
         const sql = `INSERT INTO minetoken_teams (token_id, uid, \`status\`, note, create_time) 
-                     VALUES (?, ?, ?, ?, ?);`;
-        const result = await conn.query(sql, [tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss')]);
+                    VALUES (?, ?, ?, ?, ?);`;
+        const result = await conn.query(sql, [ tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss') ]);
         await conn.commit();
 
         if (result.affectedRows === 1) {
           return 0;
-        } else {
-          return -1;
         }
-      } else {
-        // 有记录 更新数据
-        const sql = `UPDATE minetoken_teams SET token_id = ?, uid = ?, status = ?, note = ?, create_time = ? 
-                            WHERE token_id = ? AND uid = ?;`;
-        const result = await conn.query(sql, [tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss'), tokenId, uid]);
-        await conn.commit();
+        return -1;
 
-        if (result.affectedRows === 1) {
-          return 0;
-        } else {
-          return -1;
-        }
       }
+      // 有记录 更新数据
+      const sql = `UPDATE minetoken_teams SET token_id = ?, uid = ?, status = ?, note = ?, create_time = ? 
+                            WHERE token_id = ? AND uid = ?;`;
+      const result = await conn.query(sql, [ tokenId, uid, 1, 'owner', moment().format('YYYY-MM-DD HH:mm:ss'), tokenId, uid ]);
+      await conn.commit();
+
+      if (result.affectedRows === 1) {
+        return 0;
+      }
+      return -1;
+
+
     } catch (e) {
       console.log(e);
       await conn.rollback();
@@ -150,7 +150,7 @@ class MineTokenService extends Service {
     const token = await this.app.mysql.get('minetokens', parameters);
 
     // Move from this.supporters() based on commit 6167231078f93f3d8af70195c7d3042182b5a74c
-    const sqlCount = `SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;`;
+    const sqlCount = 'SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;';
     const countResult = await this.app.mysql.query(sqlCount, [ token.pid ]);
 
     token.supporter = countResult[0].count || 0;
@@ -241,7 +241,7 @@ class MineTokenService extends Service {
 
 
   // 获取lives
-  async getLives(tokenId, page= 1, pagesize= 20, order = '') {
+  async getLives(tokenId, page = 1, pagesize = 20, order = '') {
     const conn = await this.app.mysql.beginTransaction();
     try {
       let result = null;
@@ -254,7 +254,7 @@ class MineTokenService extends Service {
 
       // oder by DESC/ASC 其他参数不允许传递
       if (order === 'desc' || order === 'asc') {
-        sql += ` ORDER BY m.create_time ${order.toUpperCase()}`
+        sql += ` ORDER BY m.create_time ${order.toUpperCase()}`;
       }
 
       if (pagesize === -1) {
@@ -267,7 +267,7 @@ class MineTokenService extends Service {
       }
 
       // 统计 count
-      const countResult = await conn.query(`SELECT COUNT(1) AS count FROM minetoken_lives;`);
+      const countResult = await conn.query('SELECT COUNT(1) AS count FROM minetoken_lives;');
       await conn.commit();
       return {
         count: countResult[0].count || 0,
@@ -285,7 +285,7 @@ class MineTokenService extends Service {
     if (token.id !== tokenId) {
       return {
         code: -1,
-      }
+      };
     }
 
     try {
@@ -301,14 +301,14 @@ class MineTokenService extends Service {
       return {
         code: 0,
         data: {
-          id: insertResult.insertId
-        }
-      }
+          id: insertResult.insertId,
+        },
+      };
     } catch (e) {
       this.ctx.logger.error(`createLive error: ${e}`);
       return {
         code: -1,
-      }
+      };
     }
   }
   // 更新 live
@@ -332,9 +332,9 @@ class MineTokenService extends Service {
       // 判断是否更新成功
       if (updateResult.affectedRows === 1) {
         return 0;
-      } else {
-        return -1;
       }
+      return -1;
+
 
     } catch (e) {
       this.ctx.logger.error(`updateLive error: ${e}`);
@@ -360,7 +360,7 @@ class MineTokenService extends Service {
   }
 
   // 获取news
-  async getNews(tokenId, page= 1, pagesize= 20, order='') {
+  async getNews(tokenId, page = 1, pagesize = 20, order = '') {
     const conn = await this.app.mysql.beginTransaction();
     try {
       let result = null;
@@ -373,7 +373,7 @@ class MineTokenService extends Service {
 
       // oder by DESC/ASC 其他参数不允许传递
       if (order === 'desc' || order === 'asc') {
-        sql += ` ORDER BY m.create_time ${order.toUpperCase()}`
+        sql += ` ORDER BY m.create_time ${order.toUpperCase()}`;
       }
 
       if (pagesize === -1) {
@@ -385,7 +385,7 @@ class MineTokenService extends Service {
         result = await conn.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
       }
       // 统计 count
-      const countResult = await conn.query(`SELECT COUNT(1) AS count FROM minetoken_news;`);
+      const countResult = await conn.query('SELECT COUNT(1) AS count FROM minetoken_news;');
       await conn.commit();
       return {
         count: countResult[0].count || 0,
@@ -403,7 +403,7 @@ class MineTokenService extends Service {
     if (token.id !== tokenId) {
       return {
         code: -1,
-      }
+      };
     }
 
     try {
@@ -418,14 +418,14 @@ class MineTokenService extends Service {
       return {
         code: 0,
         data: {
-          id: insertResult.insertId
-        }
-      }
+          id: insertResult.insertId,
+        },
+      };
     } catch (e) {
       this.ctx.logger.error(`createNew error: ${e}`);
       return {
         code: -1,
-      }
+      };
     }
   }
   // 更新 news
@@ -448,9 +448,9 @@ class MineTokenService extends Service {
       // 判断是否更新成功
       if (updateResult.affectedRows === 1) {
         return 0;
-      } else {
-        return -1;
       }
+      return -1;
+
 
     } catch (e) {
       this.ctx.logger.error(`updateNew error: ${e}`);
@@ -476,7 +476,7 @@ class MineTokenService extends Service {
   }
 
   // ---------- 投票记录 --------------
-  async supporters(tokenId, page= 1, pagesize= 20) {
+  async supporters(tokenId, page = 1, pagesize = 20) {
     try {
       const { pid, supporter } = await this.get(tokenId);
       tokenId = pid;
@@ -485,7 +485,7 @@ class MineTokenService extends Service {
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
 
-      let sql = `SELECT d.uid, SUM(d.weight) as weight, u.avatar, u.nickname, u.username
+      const sql = `SELECT d.uid, SUM(d.weight) as weight, u.avatar, u.nickname, u.username
                 FROM daojam_vote_log d, users u
                 WHERE d.pid = ? AND d.uid = u.id
                 GROUP BY pid, uid
@@ -620,13 +620,13 @@ class MineTokenService extends Service {
     if (token.id !== tokenId) {
       return {
         code: -1,
-      }
+      };
     }
     if (token && token.uid === teamMember.uid) {
       return {
         code: -1,
-        message: '不能邀请自己'
-      }
+        message: '不能邀请自己',
+      };
     }
 
     const conn = await this.app.mysql.beginTransaction();
@@ -639,10 +639,10 @@ class MineTokenService extends Service {
         return {
           code: 0,
           message: '邀请成功',
-        }
-      } else {
-        throw new Error('send Invite error');
+        };
       }
+      throw new Error('send Invite error');
+
     };
 
     // 没有同意加入团队 继续发送请求并且更新数据
@@ -656,8 +656,8 @@ class MineTokenService extends Service {
       const updateOptions = {
         where: {
           token_id: tokenId,
-          uid: teamMember.uid
-        }
+          uid: teamMember.uid,
+        },
       };
       const updateResult = await conn.update('minetoken_teams', updateRow, updateOptions);
 
@@ -667,9 +667,9 @@ class MineTokenService extends Service {
       if (updateResult.affectedRows === 1) {
         console.log('更新邀请信息');
         return sendInvite();
-      } else {
-        throw new Error('update note create_time error');
       }
+      throw new Error('update note create_time error');
+
     };
 
     // 如果没有记录
@@ -689,9 +689,9 @@ class MineTokenService extends Service {
       if (insertResult.affectedRows === 1) {
         console.log('第一次邀请');
         return sendInvite();
-      } else {
-        throw new Error(`invite inset error: ${insertResult}`);
       }
+      throw new Error(`invite inset error: ${insertResult}`);
+
     };
 
     try {
@@ -712,19 +712,19 @@ class MineTokenService extends Service {
           return {
             code: -1,
             message: '已经是团队成员了',
-          }
-        } else {
-          // 其他 status 不等于 1 0
-          this.ctx.logger.error(`status error ${result.status}`);
-          return {
-            code: -1,
-            message: '邀请失败',
-          }
+          };
         }
-      } else {
-        // 没有记录
-        return sendFirstInvite();
+        // 其他 status 不等于 1 0
+        this.ctx.logger.error(`status error ${result.status}`);
+        return {
+          code: -1,
+          message: '邀请失败',
+        };
+
       }
+      // 没有记录
+      return sendFirstInvite();
+
 
     } catch (e) {
       console.log(e);
@@ -732,7 +732,7 @@ class MineTokenService extends Service {
       this.ctx.logger.error(`teamMemberInvite error: ${e}`);
       return {
         code: -1,
-      }
+      };
     }
   }
   // 申请加入
@@ -742,8 +742,8 @@ class MineTokenService extends Service {
     if (token && token.id === tokenId) {
       return {
         code: -1,
-        message: '不能申请加入自己的团队'
-      }
+        message: '不能申请加入自己的团队',
+      };
     }
 
     const conn = await this.app.mysql.beginTransaction();
@@ -756,10 +756,10 @@ class MineTokenService extends Service {
         return {
           code: 0,
           message: '申请成功',
-        }
-      } else {
-        throw new Error('send apply error');
+        };
       }
+      throw new Error('send apply error');
+
     };
 
     // 没有同意加入团队 继续发送请求并且更新数据
@@ -774,7 +774,7 @@ class MineTokenService extends Service {
         where: {
           token_id: tokenId,
           uid: teamMember.uid,
-        }
+        },
       };
       const updateResult = await conn.update('minetoken_teams', updateRow, updateOptions);
 
@@ -784,9 +784,9 @@ class MineTokenService extends Service {
       if (updateResult.affectedRows === 1) {
         console.log('更新申请信息');
         return sendApply();
-      } else {
-        throw new Error('update note create_time error');
       }
+      throw new Error('update note create_time error');
+
     };
 
     // 如果没有记录
@@ -806,9 +806,9 @@ class MineTokenService extends Service {
       if (insertResult.affectedRows === 1) {
         console.log('第一次申请');
         return sendApply();
-      } else {
-        throw new Error(`apply inset error: ${insertResult}`);
       }
+      throw new Error(`apply inset error: ${insertResult}`);
+
     };
 
     try {
@@ -829,19 +829,19 @@ class MineTokenService extends Service {
           return {
             code: -1,
             message: '已经是团队成员了',
-          }
-        } else {
-          // 其他 status 不等于 1 0
-          this.ctx.logger.error(`status error ${result.status}`);
-          return {
-            code: -1,
-            message: '申请失败',
-          }
+          };
         }
-      } else {
-        // 没有记录
-        return sendFirstApply();
+        // 其他 status 不等于 1 0
+        this.ctx.logger.error(`status error ${result.status}`);
+        return {
+          code: -1,
+          message: '申请失败',
+        };
+
       }
+      // 没有记录
+      return sendFirstApply();
+
 
     } catch (e) {
       console.log(e);
@@ -849,7 +849,7 @@ class MineTokenService extends Service {
       this.ctx.logger.error(`teamMemberApply error: ${e}`);
       return {
         code: -1,
-      }
+      };
     }
   }
   // 同意加入 申请同意 (管理员同意的角度）
@@ -858,7 +858,7 @@ class MineTokenService extends Service {
     if (token.id !== tokenId) {
       return {
         code: -1,
-      }
+      };
     }
 
     // 同意加入团队
@@ -871,17 +871,17 @@ class MineTokenService extends Service {
           token_id: tokenId,
           uid: teamMember.uid,
           note: 'apply', // 只负责相应的修改
-        }
+        },
       };
       const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
 
       if (updateResult.affectedRows === 1) {
         return {
           code: 0,
-        }
-      } else {
-        throw new Error('successJoin error');
+        };
       }
+      throw new Error('successJoin error');
+
     };
 
     try {
@@ -899,28 +899,28 @@ class MineTokenService extends Service {
           return {
             code: 0,
             message: '已经是团队成员了',
-          }
-        } else {
-          // 其他 status 不等于 1 0
-          this.ctx.logger.error(`status error ${result.status}`);
-          return {
-            code: -1,
-            message: '同意失败',
-          }
+          };
         }
-      } else {
+        // 其他 status 不等于 1 0
+        this.ctx.logger.error(`status error ${result.status}`);
         return {
           code: -1,
-          message: '没有这条记录',
-        }
+          message: '同意失败',
+        };
+
       }
+      return {
+        code: -1,
+        message: '没有这条记录',
+      };
+
 
     } catch (e) {
       console.log(e);
       this.ctx.logger.error(`teamMemberInvite error: ${e}`);
       return {
         code: -1,
-      }
+      };
     }
 
   }
@@ -929,7 +929,7 @@ class MineTokenService extends Service {
    * @param userId { number | string }
    * @param tokenId { number | string }
    * @param teamMember { object } { invite_id: 邀请人的id }
-   * @returns {Promise<{code: number}|undefined|{code: number, message: string}>}
+   * @return {Promise<{code: number}|undefined|{code: number, message: string}>}
    */
   async teamMemberInviteSuccess(userId, tokenId, teamMember) {
 
@@ -937,11 +937,11 @@ class MineTokenService extends Service {
 
     // 查询token user_id note
     // 判断token是邀请人所有
-    const token = await this.getByUserId(teamMember['invite_id']);
+    const token = await this.getByUserId(teamMember.invite_id);
     if (token.id !== tokenId) {
       return {
         code: -1,
-      }
+      };
     }
 
     // 同意加入团队
@@ -954,7 +954,7 @@ class MineTokenService extends Service {
           token_id: tokenId,
           uid: userId,
           note: 'invite', // 只负责相应的修改
-        }
+        },
       };
       const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
 
@@ -962,10 +962,10 @@ class MineTokenService extends Service {
         return {
           code: 0,
           message: '接受邀请',
-        }
-      } else {
-        throw new Error('successJoin error');
+        };
       }
+      throw new Error('successJoin error');
+
     };
 
     try {
@@ -983,28 +983,28 @@ class MineTokenService extends Service {
           return {
             code: 0,
             message: '已经是团队成员了',
-          }
-        } else {
-          // 其他 status 不等于 1 0
-          this.ctx.logger.error(`status error ${result.status}`);
-          return {
-            code: -1,
-            message: '同意失败',
-          }
+          };
         }
-      } else {
+        // 其他 status 不等于 1 0
+        this.ctx.logger.error(`status error ${result.status}`);
         return {
           code: -1,
-          message: '您不是邀请对象',
-        }
+          message: '同意失败',
+        };
+
       }
+      return {
+        code: -1,
+        message: '您不是邀请对象',
+      };
+
 
     } catch (e) {
       console.log(e);
       this.ctx.logger.error(`teamMemberInviteSuccess error: ${e}`);
       return {
         code: -1,
-      }
+      };
     }
 
   }
@@ -1013,21 +1013,21 @@ class MineTokenService extends Service {
     const token = await this.getByUserId(userId);
     if (token.id !== tokenId) {
       return {
-        code: -1
-      }
+        code: -1,
+      };
     }
 
     if (token && token.uid === teamMember.uid) {
       return {
         code: -1,
         message: '不能删除自己',
-      }
+      };
     }
 
     const conn = await this.app.mysql.beginTransaction();
     try {
       // 查询数据
-      const getResult = await conn.get(`minetoken_teams`, {
+      const getResult = await conn.get('minetoken_teams', {
         token_id: tokenId,
         uid: teamMember.uid,
       });
@@ -1038,8 +1038,8 @@ class MineTokenService extends Service {
           await conn.commit();
           return {
             code: -1,
-            message: '不能删除拥有者'
-          }
+            message: '不能删除拥有者',
+          };
         } else if (getResult.note === teamMember.note) {
           // 邀请删除 申请删除
           // teamMember.note 的作用是增加删除条件 防止删串
@@ -1050,28 +1050,28 @@ class MineTokenService extends Service {
           });
           await conn.commit();
           return {
-            code: 0
+            code: 0,
           };
-        } else {
-          await conn.commit();
-          return {
-            code: -1,
-            message: '删除失败'
-          }
         }
-      } else {
         await conn.commit();
         return {
-          code: -1
-        }
+          code: -1,
+          message: '删除失败',
+        };
+
       }
+      await conn.commit();
+      return {
+        code: -1,
+      };
+
 
     } catch (e) {
       await conn.rollback();
       this.ctx.logger.error(`teamMemberRemove error: ${e}`);
       return {
-        code: -1
-      }
+        code: -1,
+      };
     }
   }
   // 获取所有成员
@@ -1087,29 +1087,29 @@ class MineTokenService extends Service {
         sql = `SELECT m.uid, m.note, m.contact, m.content, m.create_time, u.nickname, u.username, u.avatar
                   FROM minetoken_teams m, users u 
                   WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
-        sqlParams = [tokenId, 0, 'apply'];
+        sqlParams = [ tokenId, 0, 'apply' ];
 
         countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;';
-        countSqlParams = [tokenId, 0, 'apply'];
+        countSqlParams = [ tokenId, 0, 'apply' ];
       } else if (note === 'invite') {
         // 邀请列表
         sql = `SELECT m.uid, m.note, m.create_time, u.nickname, u.username, u.avatar
                   FROM minetoken_teams m, users u 
                   WHERE m.token_id = ? AND m.status = ? AND m.note = ? AND u.id = m.uid;`;
-        sqlParams = [tokenId, 0, 'invite'];
+        sqlParams = [ tokenId, 0, 'invite' ];
 
         countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = ? AND note = ?;';
-        countSqlParams = [tokenId, 0, 'invite'];
+        countSqlParams = [ tokenId, 0, 'invite' ];
 
       } else {
         // 成员列表
         sql = `SELECT m.uid, m.note, u.nickname, u.username, u.avatar
               FROM minetoken_teams m, users u 
               WHERE m.token_id = ? AND m.status = ? AND u.id = m.uid;`;
-        sqlParams = [tokenId, 1];
+        sqlParams = [ tokenId, 1 ];
 
         countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = 1;';
-        countSqlParams = [tokenId];
+        countSqlParams = [ tokenId ];
       }
       // 查询列表
       const selectResult = await this.app.mysql.query(sql, sqlParams);
@@ -1121,15 +1121,15 @@ class MineTokenService extends Service {
         code: 0,
         data: {
           count: countResult[0].count || 0,
-          list: selectResult
-        }
-      }
+          list: selectResult,
+        },
+      };
 
     } catch (e) {
       this.ctx.logger.error(`teamMember error: ${e}`);
       return {
-        code: -1
-      }
+        code: -1,
+      };
     }
   }
   // 邀请列表（被邀请人的列表）
@@ -1139,10 +1139,10 @@ class MineTokenService extends Service {
       const sql = `SELECT m.token_id, m.create_time, m.uid, t.logo, t.symbol, t.name
                     FROM minetoken_teams m, minetokens t
                     WHERE m.uid = ? AND m.status = ? AND m.note = ? AND m.token_id = t.id;`;
-      const sqlParams = [userId, 0, 'invite'];
+      const sqlParams = [ userId, 0, 'invite' ];
 
-      const countSql = `SELECT COUNT(1) as count FROM minetoken_teams WHERE uid = ? AND status = ? AND note = ?;`;
-      const countSqlParams = [userId, 0, 'invite'];
+      const countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE uid = ? AND status = ? AND note = ?;';
+      const countSqlParams = [ userId, 0, 'invite' ];
 
       // 查询列表
       const selectResult = await this.app.mysql.query(sql, sqlParams);
@@ -1154,22 +1154,22 @@ class MineTokenService extends Service {
         code: 0,
         data: {
           count: countResult[0].count || 0,
-          list: selectResult
-        }
-      }
+          list: selectResult,
+        },
+      };
     } catch (e) {
       this.ctx.logger.error(`teamMemberInviteList error: ${e}`);
       return {
-        code: -1
-      }
+        code: -1,
+      };
     }
   }
   // 邀请同意或删除（被邀请人的操作）
   async teamMemberInviteUser(userId, teamMember) {
     if (userId !== Number(teamMember.uid)) {
       return {
-        code: -1
-      }
+        code: -1,
+      };
     }
 
     try {
@@ -1182,44 +1182,43 @@ class MineTokenService extends Service {
             token_id: teamMember.token_id,
             uid: teamMember.uid,
             note: 'invite', // 只负责相应的修改
-          }
+          },
         };
-        console.log(updateOptions)
+        console.log(updateOptions);
 
         const updateResult = await this.app.mysql.update('minetoken_teams', updateRow, updateOptions);
 
         if (updateResult.affectedRows === 1) {
           return {
             code: 0,
-          }
-        } else {
-          return {
-            code: -1
-          }
+          };
         }
+        return {
+          code: -1,
+        };
+
       } else if (teamMember.from === 'deny') {
         this.app.mysql.delete('minetoken_teams', {
           token_id: teamMember.token_id,
           uid: teamMember.uid,
           status: 0,
-          note: 'invite'
+          note: 'invite',
         });
 
         return {
           code: 0,
-        }
-      } else {
-        return {
-          code: -1
-        }
+        };
       }
+      return {
+        code: -1,
+      };
 
 
     } catch (e) {
       this.ctx.logger.error(`teamMember error: ${e}`);
       return {
-        code: -1
-      }
+        code: -1,
+      };
     }
   }
 
@@ -1235,12 +1234,12 @@ class MineTokenService extends Service {
       GROUP BY pid
       LIMIT :offset, :limit;
       SELECT count(1) as count FROM minetokens c1
-      JOIN minetoken_teams b ON b.token_id = c1.id AND b.uid = :userId AND b.status = :status`
+      JOIN minetoken_teams b ON b.token_id = c1.id AND b.uid = :userId AND b.status = :status`;
     const result = await this.app.mysql.query(sql, {
       offset: (page - 1) * pagesize,
       limit: pagesize,
       userId,
-      status
+      status,
     });
     return {
       count: result[1][0].count,
@@ -1931,18 +1930,18 @@ class MineTokenService extends Service {
   }
 
   async addBookmark(userId, tokenId) {
-    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [tokenId]))[0];
+    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [ tokenId ]))[0];
     if (!existence) {
       return null;
     }
 
-    const { affectedRows } = await this.app.mysql.query('INSERT IGNORE minetoken_bookmarks VALUES(?, ?, ?);', [userId, tokenId, moment().format('YYYY-MM-DD HH:mm:ss')]);
+    const { affectedRows } = await this.app.mysql.query('INSERT IGNORE minetoken_bookmarks VALUES(?, ?, ?);', [ userId, tokenId, moment().format('YYYY-MM-DD HH:mm:ss') ]);
 
     return affectedRows === 1;
   }
 
   async removeBookmark(userId, tokenId) {
-    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [tokenId]))[0];
+    const { existence } = (await this.app.mysql.query('SELECT EXISTS (SELECT 1 FROM minetokens WHERE id = ?) existence;', [ tokenId ]))[0];
     if (!existence) {
       return null;
     }
@@ -1967,7 +1966,7 @@ class MineTokenService extends Service {
       sql,
       {
         userId,
-        tokenIds
+        tokenIds,
       }
     );
     return list;

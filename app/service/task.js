@@ -22,9 +22,9 @@ class TaskService extends Service {
     try {
       return await this.app.mysql.select('tasks');
     } catch (e) {
-      console.log(e)
+      console.log(e);
       this.ctx.logger.error(`task fail: ${e}`);
-      return []
+      return [];
     }
   }
 
@@ -33,13 +33,13 @@ class TaskService extends Service {
     try {
       return await this.app.mysql.select('minetoken_tasks', {
         where: {
-          "token_id": tokenId
-        }
+          token_id: tokenId,
+        },
       });
     } catch (e) {
       console.log(e);
       this.ctx.logger.error(`task fail: ${e}`);
-      return []
+      return [];
     }
   }
 
@@ -47,14 +47,14 @@ class TaskService extends Service {
    *
    * @param userId
    * @param task { object }
-   * @returns {Promise<{code: number, message: *}|{code: number}>}
+   * @return {Promise<{code: number, message: *}|{code: number}>}
    */
   async updateTask(userId, task) {
     const token = await this.getByUserId(userId);
     if (token.id !== task.team_id) {
       return {
         code: -1,
-      }
+      };
     }
 
     const conn = await this.app.mysql.beginTransaction();
@@ -62,7 +62,7 @@ class TaskService extends Service {
       // 删除该团队的所有主线任务
       await conn.delete('minetoken_tasks', {
         token_id: task.team_id,
-        type: 0
+        type: 0,
       });
       // 更新该团队所有的主线任务
       await conn.insert('minetoken_tasks', {
@@ -74,10 +74,10 @@ class TaskService extends Service {
       // 删除该团队的所有支线任务
       await conn.delete('minetoken_tasks', {
         token_id: task.team_id,
-        type: 1
+        type: 1,
       });
       // 更新该团队所有的支线任务
-      let sideTaskList = task.data.sideTask
+      const sideTaskList = task.data.sideTask;
       for (let i = 0; i < sideTaskList.length; i++) {
         await conn.insert('minetoken_tasks', {
           token_id: task.team_id,
@@ -89,15 +89,15 @@ class TaskService extends Service {
       await conn.commit();
 
       return {
-        code: 0
-      }
+        code: 0,
+      };
     } catch (e) {
       await conn.rollback();
       this.ctx.logger.error(`updateTask error: ${e}`);
       return {
         code: -1,
-        message: e
-      }
+        message: e,
+      };
     }
   }
 }
