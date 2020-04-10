@@ -28,7 +28,7 @@ class ProjectService extends Service {
   }
   async list(page, pagesize) {
     const sql = `
-      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot FROM minetokens t1
+      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(1) AS supporter FROM minetokens t1
       LEFT JOIN daojam_vote_log t2
       ON t1.pid = t2.pid
       GROUP BY pid
@@ -46,7 +46,7 @@ class ProjectService extends Service {
   async get(id) {
     const p = await this.app.mysql.get('minetokens', { id });
     const sql = `
-      SELECT IFNULL(SUM(weight), 0) as weight, IFNULL(SUM(POW(weight,2)), 0) as daot 
+      SELECT IFNULL(SUM(weight), 0) as weight, IFNULL(SUM(POW(weight,2)), 0) as daot
       FROM daojam_vote_log
       WHERE pid = :pid;`;
     const weight = await this.app.mysql.query(sql, {
