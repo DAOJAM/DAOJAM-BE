@@ -148,6 +148,13 @@ class MineTokenService extends Service {
    */
   async getToken(parameters) {
     const token = await this.app.mysql.get('minetokens', parameters);
+
+    // Move from this.supporters() based on commit 6167231078f93f3d8af70195c7d3042182b5a74c
+    const sqlCount = `SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;`;
+    const countResult = await this.app.mysql.query(sqlCount, [ token.pid ]);
+
+    token.supporter = countResult[0].count || 0;
+
     return token;
   }
 
@@ -471,26 +478,23 @@ class MineTokenService extends Service {
   // ---------- 投票记录 --------------
   async supporters(tokenId, page= 1, pagesize= 20) {
     try {
-      const { pid } = await this.get(tokenId);
+      const { pid, supporter } = await this.get(tokenId);
       tokenId = pid;
 
       let result = null;
       if (typeof page === 'string') page = parseInt(page);
       if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
 
-      let sql = `SELECT d.uid, SUM(d.weight) as weight, u.avatar, u.nickname, u.username 
-                FROM daojam_vote_log d, users u 
+      let sql = `SELECT d.uid, SUM(d.weight) as weight, u.avatar, u.nickname, u.username
+                FROM daojam_vote_log d, users u
                 WHERE d.pid = ? AND d.uid = u.id
-                GROUP BY pid, uid 
+                GROUP BY pid, uid
                 ORDER BY weight DESC LIMIT ?, ?;`;
 
       result = await this.app.mysql.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
 
-      // 统计 count
-      const sqlCount = `SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;`;
-      const countResult = await this.app.mysql.query(sqlCount, [ tokenId ]);
       return {
-        count: countResult[0].count || 0,
+        count: supporter,
         list: result,
       };
     } catch (e) {
@@ -1218,6 +1222,32 @@ class MineTokenService extends Service {
       }
     }
   }
+
+  // 获取用户参加的项目列表， status: 0 申请中 \ 1 已加入
+  async joinedTeamList(userId, page = 1, pagesize = 20, status = 1) {
+    if (isNaN(userId)) return false;
+
+    const sql = `
+      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot FROM minetokens t1
+      LEFT JOIN daojam_vote_log t2
+      ON t1.pid = t2.pid
+      JOIN minetoken_teams b ON b.token_id = t1.id AND b.uid = :userId AND b.status = :status
+      GROUP BY pid
+      LIMIT :offset, :limit;
+      SELECT count(1) as count FROM minetokens c1
+      JOIN minetoken_teams b ON b.token_id = c1.id AND b.uid = :userId AND b.status = :status`
+    const result = await this.app.mysql.query(sql, {
+      offset: (page - 1) * pagesize,
+      limit: pagesize,
+      userId,
+      status
+    });
+    return {
+      count: result[1][0].count,
+      list: result[0],
+    };
+  }
+
   // --------------- 团队管理 end ------------------
 
 
