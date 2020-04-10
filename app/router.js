@@ -523,6 +523,8 @@ module.exports = app => {
   router.post('/task', passport.authorize, controller.task.updateTask);
   router.get('/taskTeam/:id', passport.verify, controller.task.taskTeam);
   // ------------------- 任务 end --------------------------
+  // ----- 排行榜 -------
+  router.get('/leaderboard', passport.verify, controller.leaderboard.all);
 
 };
 
