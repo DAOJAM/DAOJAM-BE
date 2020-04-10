@@ -698,7 +698,7 @@ class UserService extends Service {
     return { websites, socialAccounts };
   }
 
-  async votes(userId, page= 1, pagesize= 20) {
+  async votes(userId, page = 1, pagesize = 20) {
     if (userId === null) {
       return [];
     }
@@ -709,33 +709,33 @@ class UserService extends Service {
 
     try {
       // 查询总记录
-      const sqlUserAllVote = `SELECT d.pid, d.uid, d.voter, SUM(d.weight) AS weight, m.id, m.name, m.logo FROM daojam_vote_log d, minetokens m
-                            WHERE d.uid = ? AND d.pid = m.pid GROUP BY pid, uid 
-                            ORDER BY weight DESC LIMIT ?, ?;`;
+      const sqlUserAllVote = `SELECT d.pid, d.uid, d.voter, SUM(d.weight) AS weight, SUM(POW(d.weight,2)) as daot, m.name, m.logo FROM daojam_vote_log d, minetokens m
+                              WHERE d.uid = ? AND d.pid = m.pid GROUP BY pid, uid 
+                              ORDER BY weight DESC LIMIT ?, ?;`;
 
       const userAllVoteResult = await this.app.mysql.query(sqlUserAllVote, [ userId, (page - 1) * pagesize, pagesize ]);
 
       // 查询单条记录
       for (let i = 0; i < userAllVoteResult.length; i++) {
-        const sql = `SELECT weight, create_time FROM daojam_vote_log WHERE pid = ? AND uid = ? ORDER BY create_time DESC;`;
-        const result = await this.app.mysql.query(sql, [userAllVoteResult[i].pid, userAllVoteResult[i].uid])
+        const sql = 'SELECT weight, POW(weight,2) as daot, create_time FROM daojam_vote_log WHERE pid = ? AND uid = ? ORDER BY create_time DESC;';
+        const result = await this.app.mysql.query(sql, [ userAllVoteResult[i].pid, userAllVoteResult[i].uid ]);
         userAllVoteResult[i].data = result;
       }
 
       // 统计数量
-      const sqlCount = `SELECT COUNT(1) AS count FROM (SELECT COUNT(1) as count FROM daojam_vote_log WHERE uid = ? GROUP BY pid, uid) alias;`;
-      const countResult = await this.app.mysql.query(sqlCount, [ userId ])
+      const sqlCount = 'SELECT COUNT(1) AS count FROM (SELECT COUNT(1) as count FROM daojam_vote_log WHERE uid = ? GROUP BY pid, uid) alias;';
+      const countResult = await this.app.mysql.query(sqlCount, [ userId ]);
 
       return {
         count: countResult[0].count || 0,
         list: userAllVoteResult,
-      }
+      };
     } catch (e) {
       this.ctx.logger.error(`vote fail: ${e}`);
       return {
         count: 0,
-        list: []
-      }
+        list: [],
+      };
     }
 
   }
@@ -845,7 +845,7 @@ class UserService extends Service {
     return result;
   }
   async setEmailSubscriber(email, ip) {
-    const { affectedRows } = await this.app.mysql.query('INSERT IGNORE email_subscribers(ip, email, create_time) VALUES(INET_ATON(?), ?, ?);', [ip, email, moment().format('YYYY-MM-DD HH:mm:ss')]);
+    const { affectedRows } = await this.app.mysql.query('INSERT IGNORE email_subscribers(ip, email, create_time) VALUES(INET_ATON(?), ?, ?);', [ ip, email, moment().format('YYYY-MM-DD HH:mm:ss') ]);
     return affectedRows === 1;
   }
 }
