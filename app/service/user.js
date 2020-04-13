@@ -717,7 +717,7 @@ class UserService extends Service {
 
       // 查询单条记录
       for (let i = 0; i < userAllVoteResult.length; i++) {
-        const sql = 'SELECT weight, POW(weight,2) as daot, create_time FROM daojam_vote_log WHERE pid = ? AND uid = ? ORDER BY create_time DESC;';
+        const sql = 'SELECT weight, POW(weight,2) as daot, trx, create_time FROM daojam_vote_log WHERE pid = ? AND uid = ? ORDER BY create_time DESC;';
         const result = await this.app.mysql.query(sql, [ userAllVoteResult[i].pid, userAllVoteResult[i].uid ]);
         userAllVoteResult[i].data = result;
       }
