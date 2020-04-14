@@ -284,6 +284,19 @@ module.exports = app => {
   // 删除 news
   router.delete('/minetoken/:id/news', passport.authorize, controller.mineToken.deleteNew);
   // ------------------- token live new  end--------------------------
+  // ------------------- 项目图片 ---------------------------------------
+  // 创建或更新项目图片
+  router.get('/minetoken/:id/images', passport.verify, controller.mineToken.imageList);
+  router.post('/minetoken/:id/images', passport.authorize, controller.mineToken.postImages);
+  // ------------------- 项目图片 end ---------------------------------------
+
+  // ------------------- 项目排名 ---------------------------------------
+  router.get('/minetoken/:id/rank', passport.verify, controller.mineToken.rank);
+
+  // ------------------- 项目milestone ---------------------------------------
+  router.get('/minetoken/:id/milestones', passport.verify, controller.mineToken.milestone);
+  router.post('/minetoken/:id/milestones', passport.authorize, controller.mineToken.postMilestones);
+
 
   // ------------------- 支持列表 --------------------------
   // 支持者
