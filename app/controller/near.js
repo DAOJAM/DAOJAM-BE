@@ -29,7 +29,17 @@ class NearController extends Controller {
   }
   async createProposal() {
     const ctx = this.ctx;
-    const { id, txHash, blockHash } = ctx.request.body;
+    const {
+      id,
+      txHash,
+      blockHash,
+      introduction,
+      logo,
+      cover,
+      repo,
+      websites,
+      socials,
+    } = ctx.request.body;
     const p = await this.service.nearprotocol.getProposal(id);
     if (!p) {
       ctx.body = {
@@ -51,15 +61,19 @@ class NearController extends Controller {
       pid: id,
       name,
       description,
+      introduction,
+      logo,
+      cover,
+      repo,
       block_number: 0,
       trx: txHash,
       block_hash: blockHash,
       owner: creator,
     });
-
+    await ctx.service.token.mineToken.saveResources(ctx.user.id, result.insertId, websites, socials);
     ctx.body = {
       ...ctx.msg.success,
-      data: result,
+      data: result.insertId,
     };
   }
   async vote() {
