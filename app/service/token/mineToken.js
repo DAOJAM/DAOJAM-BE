@@ -475,6 +475,140 @@ class MineTokenService extends Service {
     }
   }
 
+  async imageList(tokenId) {
+    try {
+      const { pid } = await this.get(tokenId);
+      tokenId = pid;
+
+      return await this.app.mysql.select('minetoken_images', {
+        where: { pid: tokenId },
+        columns: [ 'url' ],
+      });
+    } catch (e) {
+      this.ctx.logger.error(e);
+      return [];
+    }
+  }
+
+  async postImages(userId, tokenId, images) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return -1;
+    }
+
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      const { pid } = await this.get(tokenId);
+      tokenId = pid;
+
+      const result = await conn.select('minetoken_images', {
+        pid: tokenId,
+      });
+      // 如果有记录 全部删除
+      if (result) {
+        await conn.delete('minetoken_images', {
+          pid: tokenId,
+        });
+      }
+
+      for (const key of images) {
+        // 然后插入新数据
+        await conn.insert('minetoken_images', {
+          pid: tokenId,
+          url: key,
+          create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+        });
+      }
+      await conn.commit();
+      return 0;
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+
+  async rank(tokenId) {
+    try {
+      const { pid } = await this.get(tokenId);
+      tokenId = pid;
+      // sql写得有点复杂需要慢慢看
+      // 1.先查询所有记录并排序
+      // 2.根据所有记录增加ranks
+      // 3.根据uid查询ranks得数据
+      const sql = `SELECT a.ranks FROM
+      (SELECT @rank := @rank+1 AS ranks, d.*
+      FROM
+      (SELECT @rank := 0) r,
+      (SELECT d.pid, d.uid, SUM(d.weight) AS weight, SUM(POW(d.weight,2)) AS daot
+      FROM daojam_vote_log d
+      GROUP BY pid ORDER BY weight DESC, daot DESC) AS d) AS a WHERE pid = ?;`;
+      const result = await this.app.mysql.query(sql, [ tokenId ]);
+      if (result) {
+        return result[0].ranks;
+      }
+      return 0;
+
+    } catch (e) {
+      this.ctx.logger.error(e);
+      return 0;
+    }
+  }
+
+
+  async milestone(tokenId) {
+    try {
+      const { pid } = await this.get(tokenId);
+
+      return await this.app.mysql.select('minetoken_milestones', {
+        where: { pid },
+      });
+    } catch (e) {
+      this.ctx.logger.error(e);
+      return [];
+    }
+  }
+
+  async postMilestones(userId, tokenId, milestones) {
+    const token = await this.getByUserId(userId);
+    if (token.id !== tokenId) {
+      return -1;
+    }
+
+    const conn = await this.app.mysql.beginTransaction();
+    try {
+      const { pid } = await this.get(tokenId);
+      tokenId = pid;
+
+      const result = await conn.select('minetoken_milestones', {
+        pid: tokenId,
+      });
+      // 如果有记录 全部删除
+      if (result) {
+        await conn.delete('minetoken_milestones', {
+          pid: tokenId,
+        });
+      }
+
+      for (const key of milestones) {
+        // 然后插入新数据
+        await conn.insert('minetoken_milestones', {
+          pid: tokenId,
+          label: key.label,
+          status: key.status,
+          create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+        });
+      }
+      await conn.commit();
+      return 0;
+    } catch (e) {
+      await conn.rollback();
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
+
+
   // ---------- 投票记录 --------------
   async supporters(tokenId, page = 1, pagesize = 20) {
     try {
