@@ -4,7 +4,7 @@ const Service = require('egg').Service;
 const moment = require('moment');
 
 class ProjectService extends Service {
-  async create({ pid, name, description, block_number, trx, owner, block_hash }) {
+  async create({ pid, name, description, introduction, logo, cover, repo, block_number, trx, owner, block_hash }) {
     this.logger.info('Service: Project:: create start');
     const now = moment().format('YYYY-MM-DD HH:mm:ss');
     const user = await this.app.mysql.get('user_accounts', { platform: 'near', account: owner });
@@ -17,13 +17,16 @@ class ProjectService extends Service {
       symbol: name,
       create_time: now,
       brief: description,
-      introduction: description,
+      introduction,
+      logo,
+      cover,
+      repo,
       block_number,
       trx,
       block_hash,
       owner,
     });
-
+    await this.service.token.mineToken.setTeamOwner(result.insertId, uid);
     // 设置团队拥有者
     // const setTeamOwner = async (tokenId, uid) => {
     //   const conn = await this.app.mysql.beginTransaction();
