@@ -210,7 +210,57 @@ class MineTokenController extends Controller {
       ctx.body = ctx.msg.failure;
     }
   }
+  async imageList() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const result = await ctx.service.token.mineToken.imageList(tokenId);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  async postImages() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { images } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.postImages(ctx.user.id, tokenId, images);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
 
+  async rank() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const result = await ctx.service.token.mineToken.rank(tokenId);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+
+  async milestone() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const result = await ctx.service.token.mineToken.milestone(tokenId);
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  async postMilestones() {
+    const ctx = this.ctx;
+    const tokenId = parseInt(ctx.params.id);
+    const { milestones } = this.ctx.request.body;
+    const result = await ctx.service.token.mineToken.postMilestones(ctx.user.id, tokenId, milestones);
+    if (result === 0) {
+      ctx.body = ctx.msg.success;
+    } else {
+      ctx.body = ctx.msg.failure;
+    }
+  }
   // --------------------- 投票记录 -------------------------
   async supporters() {
     const ctx = this.ctx;
@@ -360,9 +410,9 @@ class MineTokenController extends Controller {
   async joinedTeamList() {
     const ctx = this.ctx;
     const userId = parseInt(ctx.params.id);
-    const { pagesize = 10, page = 1, } = ctx.query;
+    const { pagesize = 10, page = 1 } = ctx.query;
 
-    const result = await ctx.service.token.mineToken.joinedTeamList(userId ,parseInt(page), parseInt(pagesize), 1);
+    const result = await ctx.service.token.mineToken.joinedTeamList(userId, parseInt(page), parseInt(pagesize), 1);
     if (result === false) {
       ctx.status = 400;
       ctx.body = ctx.msg.paramsError;
