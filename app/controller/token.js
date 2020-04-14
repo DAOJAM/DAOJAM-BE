@@ -99,23 +99,26 @@ class TokenController extends Controller {
   async minetokenDetail() {
     const ctx = this.ctx;
     // user id
-    const user_id = ctx.user.id;
+    const uid = ctx.user.id;
     // 根据user_id查找用户发行的token
-    const token = await ctx.service.token.mineToken.getByUserId(user_id);
+    const token = await this.app.mysql.get('minetokens', { uid });
+    // const token = await ctx.service.token.mineToken.getByUserId(user_id);
     let exchange = null;
     if (token) {
-      const balance = await ctx.service.token.mineToken.balanceOf(user_id, token.id);
+      const balance = await ctx.service.token.mineToken.balanceOf(uid, token.id);
       token.balance = balance;
       exchange = await ctx.service.token.exchange.detail(token.id);
+      ctx.body = {
+        ...ctx.msg.success,
+        data:
+        {
+          token,
+          exchange,
+        },
+      };
+    } else {
+      ctx.body = ctx.msg.userNotPostProject;
     }
-    ctx.body = {
-      ...ctx.msg.success,
-      data:
-      {
-        token,
-        exchange,
-      },
-    };
   }
 
   // 粉丝币分页列表

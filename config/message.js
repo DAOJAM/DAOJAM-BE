@@ -126,6 +126,7 @@ module.exports = {
   generateGithubTokenError: 11000,
   accountBinded: 11001,
   publishRatelimit: 11002,
+  userNotPostProject: 12000,
 
   returnObj(lang) {
 
@@ -208,6 +209,7 @@ module.exports = {
       orderHandled: { code: this.orderHandled, message: 'order handle' },
       accountBinded: { code: this.accountBinded, message: 'account already exist, cannot beed binded' },
       publishRatelimit: { code: this.publishRatelimit, message: 'too many requests' },
+      userNotPostProject: { code: this.userNotPostProject, message: 'The user has not issued a project' },
     };
 
     const zh = {
@@ -289,6 +291,7 @@ module.exports = {
       orderHandled: { code: this.orderHandled, message: '订单已处理' },
       accountBinded: { code: this.accountBinded, message: '账号已存在，无法绑定' },
       publishRatelimit: { code: this.publishRatelimit, message: '请求过多' },
+      userNotPostProject: { code: this.userNotPostProject, message: '用户尚未发行项目' },
     };
 
     let message;
