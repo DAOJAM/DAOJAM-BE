@@ -26,7 +26,7 @@ class ProjectService extends Service {
       block_hash,
       owner,
     });
-
+    await this.service.token.mineToken.setTeamOwner(result.insertId, uid);
     // 设置团队拥有者
     // const setTeamOwner = async (tokenId, uid) => {
     //   const conn = await this.app.mysql.beginTransaction();
