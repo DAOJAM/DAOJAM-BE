@@ -61,7 +61,7 @@ class NearService extends Service {
       name,
       amount,
     });
-    this.ctx.logger.error('service nearprotocol rawMint', result);
+    this.ctx.logger.info('service nearprotocol rawMint', result);
     const txHash = result.transaction.hash;
     const blockHash = result.transaction_outcome.block_hash;
     return {
