@@ -630,6 +630,12 @@ class MineTokenService extends Service {
 
       result = await this.app.mysql.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
 
+      for (let i = 0; i < result.length; i++) {
+        const sql = 'SELECT create_time, weight FROM daojam_vote_log WHERE pid = ? AND uid = ?;';
+        const resultList = await this.app.mysql.query(sql, [ pid, result[i].uid ]);
+        result[i].data = resultList;
+      }
+
       return {
         count: supporter,
         list: result,
