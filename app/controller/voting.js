@@ -49,5 +49,18 @@ class VotingController extends Controller {
       data,
     };
   }
+  async mintLog() {
+    const ctx = this.ctx;
+    const { page = 1, pagesize = 20 } = this.ctx.query;
+    const uid = ctx.user.id;
+    const data = await this.service.votingLog.mintLog(uid, page, pagesize);
+    const user = await this.service.account.binding.get(uid, 'near');
+    const balance = await this.service.nearprotocol.balance(user.account);
+    data.balance = balance;
+    ctx.body = {
+      ...ctx.msg.success,
+      data,
+    };
+  }
 }
 module.exports = VotingController;
