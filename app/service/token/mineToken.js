@@ -267,7 +267,7 @@ class MineTokenService extends Service {
       }
 
       // 统计 count
-      const countResult = await conn.query('SELECT COUNT(1) AS count FROM minetoken_lives;');
+      const countResult = await conn.query('SELECT COUNT(1) AS count FROM minetoken_lives WHERE token_id = ?;', [ tokenId ]);
       await conn.commit();
       return {
         count: countResult[0].count || 0,
@@ -385,7 +385,7 @@ class MineTokenService extends Service {
         result = await conn.query(sql, [ tokenId, (page - 1) * pagesize, pagesize ]);
       }
       // 统计 count
-      const countResult = await conn.query('SELECT COUNT(1) AS count FROM minetoken_news;');
+      const countResult = await conn.query('SELECT COUNT(1) AS count FROM minetoken_news WHERE token_id = ?;', [ tokenId ]);
       await conn.commit();
       return {
         count: countResult[0].count || 0,
@@ -1239,7 +1239,7 @@ class MineTokenService extends Service {
         // 成员列表
         sql = `SELECT m.uid, m.note, u.nickname, u.username, u.avatar
               FROM minetoken_teams m, users u 
-              WHERE m.token_id = ? AND m.status = ? AND u.id = m.uid;`;
+              WHERE m.token_id = ? AND m.status = ? AND u.id = m.uid ORDER BY FIELD(note,'owner', 'apply', 'invite') ASC;;`;
         sqlParams = [ tokenId, 1 ];
 
         countSql = 'SELECT COUNT(1) as count FROM minetoken_teams WHERE token_id = ? AND `status` = 1;';
