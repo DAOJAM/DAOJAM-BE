@@ -152,7 +152,7 @@ class MineTokenService extends Service {
     // Fix a bug because there's no any unit test
     if (token) {
       // Move from this.supporters() based on commit 6167231078f93f3d8af70195c7d3042182b5a74c
-      const sqlCount = `SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;`;
+      const sqlCount = 'SELECT COUNT(*) AS count FROM (SELECT COUNT(1) AS count FROM daojam_vote_log WHERE pid = ? GROUP BY pid, uid) alias;';
       const countResult = await this.app.mysql.query(sqlCount, [ token.pid ]);
 
       token.supporter = countResult[0].count || 0;
