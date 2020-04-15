@@ -183,6 +183,8 @@ module.exports = app => {
   router.get('/user/:id/links', passport.verify, controller.user.getLinks);
   // 个人投票记录
   router.get('/user/:id/votes', passport.verify, controller.user.votes);
+  // 个人今日 Top5 投票记录
+  router.get('/user/:id/votes/todayTop5', passport.verify, controller.user.todayTop5Votes);
 
   // -------------------------------- 粉丝系统 --------------------------------
   // follow 关注和取关动作。关注数和粉丝数在userinfo里
