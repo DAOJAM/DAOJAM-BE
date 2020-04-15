@@ -13,10 +13,10 @@ class VotingController extends Controller {
       ctx.body = ctx.msg.failure;
       return;
     }
-    const result = await this.service.nearprotocol.mint(user.account, amount);
+    const result = await this.service.nearprotocol.rawMint(user.account, amount);
     // const result = await this.service.voting._mint(user.account, amount);
     await this.service.mintLog.create({
-      uid: ctx.user.id, address: user.account, daot: amount, block_number: 0, trx: '0',
+      uid: ctx.user.id, address: user.account, daot: amount, block_number: result.blockHash, trx: result.txHash,
     });
     ctx.body = {
       ...ctx.msg.success,
