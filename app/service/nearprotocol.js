@@ -54,6 +54,21 @@ class NearService extends Service {
     });
     return res;
   }
+  async rawMint(name, amount = 100) {
+    amount = parseInt(amount);
+    const contract = this.app.nearRawContract;
+    const result = await contract.mint({
+      name,
+      amount,
+    });
+    this.ctx.logger.error('service nearprotocol rawMint', result);
+    const txHash = result.transaction.hash;
+    const blockHash = result.transaction_outcome.block_hash;
+    return {
+      txHash,
+      blockHash,
+    };
+  }
   async balance(name) {
     const contract = this.app.nearcontract;
     const res = await contract.balance_of({ name });
