@@ -183,8 +183,8 @@ module.exports = app => {
   router.get('/user/:id/links', passport.verify, controller.user.getLinks);
   // 个人投票记录
   router.get('/user/:id/votes', passport.verify, controller.user.votes);
-  // 个人今日 Top5 投票记录
-  router.get('/user/:id/votes/todayTop5', passport.verify, controller.user.todayTop5Votes);
+  // 个人今日投票记录
+  router.get('/user/:id/votes/today', passport.verify, controller.user.todayVotes);
 
   // -------------------------------- 粉丝系统 --------------------------------
   // follow 关注和取关动作。关注数和粉丝数在userinfo里
@@ -521,6 +521,7 @@ module.exports = app => {
   router.get('/dao/skill/options', passport.verify, controller.dao.skill.options);
   // -------------------------------- 投票合约API --------------------------------
   router.post('/daojam/voting/mint', passport.authorize, controller.voting.mint);
+  router.get('/daojam/voting/mint/log', passport.authorize, controller.voting.mintLog);
   router.get('/daojam/voting/balance', passport.authorize, controller.voting.balance);
   router.get('/daojam/voting/record', passport.authorize, controller.voting.userLog);
 

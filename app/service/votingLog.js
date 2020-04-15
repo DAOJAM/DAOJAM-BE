@@ -78,6 +78,35 @@ class VotingLogService extends Service {
       return -1;
     }
   }
+  async mintLog(uid, page, pagesize) {
+    this.ctx.logger.error('votinglog service listByUid', { uid, page, pagesize });
+    try {
+      let result = null;
+      if (typeof page === 'string') page = parseInt(page);
+      if (typeof pagesize === 'string') pagesize = parseInt(pagesize);
+
+      const sql = `
+          SELECT daot as vp, create_time, trx, '+' as type FROM daojam_mint_log WHERE uid = :uid
+          UNION
+          SELECT POW(weight, 2) as vp, create_time, trx, '-' as type FROM daojam_vote_log WHERE uid = :uid
+          ORDER BY create_time DESC LIMIT :offset, :limit;
+          SELECT COUNT(1) AS count FROM daojam_vote_log WHERE uid = :uid;
+          SELECT COUNT(1) AS count FROM daojam_mint_log WHERE uid = :uid;
+          `;
+      result = await this.app.mysql.query(sql, {
+        uid,
+        offset: (page - 1) * pagesize,
+        limit: pagesize,
+      });
+      return {
+        list: result[0],
+        count: result[1][0].count + result[2][0].count,
+      };
+    } catch (e) {
+      this.ctx.logger.error(e);
+      return -1;
+    }
+  }
 }
 
 module.exports = VotingLogService;

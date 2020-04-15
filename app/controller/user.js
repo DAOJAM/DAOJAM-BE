@@ -259,11 +259,11 @@ class UserController extends Controller {
     ctx.body = ctx.msg.success;
     ctx.body.data = data;
   }
-  async todayTop5Votes() {
+  async todayVotes() {
     const ctx = this.ctx;
     const { id } = ctx.params;
 
-    const data = await this.service.user.todayTop5Votes(parseInt(id));
+    const data = await this.service.user.todayVotes(parseInt(id));
 
     ctx.body = ctx.msg.success;
     ctx.body.data = data;
