@@ -39,5 +39,15 @@ class VotingController extends Controller {
       data: balance,
     };
   }
+  async userLog() {
+    const ctx = this.ctx;
+    const { page = 1, pagesize = 20 } = this.ctx.query;
+    const uid = ctx.user.id;
+    const data = await this.service.votingLog.listByUid(uid, page, pagesize);
+    ctx.body = {
+      ...ctx.msg.success,
+      data,
+    };
+  }
 }
 module.exports = VotingController;

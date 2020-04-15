@@ -520,6 +520,7 @@ module.exports = app => {
   // -------------------------------- 投票合约API --------------------------------
   router.post('/daojam/voting/mint', passport.authorize, controller.voting.mint);
   router.get('/daojam/voting/balance', passport.authorize, controller.voting.balance);
+  router.get('/daojam/voting/record', passport.authorize, controller.voting.userLog);
 
   router.get('/daojam/project', passport.verify, controller.project.index);
   router.get('/daojam/project/:id', passport.verify, controller.project.show);
