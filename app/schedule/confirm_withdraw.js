@@ -20,6 +20,8 @@ class ConfirmWithdraw extends Subscription {
   static get schedule() {
     return {
       interval: '5s',
+      // Since no EOS involved
+      disable: true,
       type: 'worker',
     };
   }
