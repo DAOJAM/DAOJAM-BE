@@ -38,6 +38,13 @@ class Bootstrapper {
       changeMethods: [ 'create_proposal', 'set_proposal_to_tally', 'set_proposal_to_ended', 'set_create_cost', 'cast_vote', 'mint' ],
       sender: accountId,
     });
+    // nearRawContract return raw data
+    const account = new nearlib.Account(near.connection, accountId);
+    this.app.nearRawContract = {
+      async mint(paramsObj) {
+        return account.functionCall(CONTRACT_NAME, 'mint', paramsObj);
+      },
+    };
     // this.app.near = near;
     this.app.nearcontract = contract;
     // ctx.walletConnection = walletConnection;

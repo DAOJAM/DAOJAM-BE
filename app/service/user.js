@@ -739,29 +739,40 @@ class UserService extends Service {
     }
   }
 
-  async todayTop5votes(userId) {
+  async todayVotes(userId) {
     if (userId === null) {
       return [];
     }
 
     try {
-      // 查询总记录
       const sql = `SELECT m.id, m.name, d.weight
       FROM daojam_vote_log d
       JOIN minetokens m USING (pid)
       WHERE d.uid = ? AND DATE(d.create_time) = DATE(NOW())
-      ORDER BY d.weight DESC
-      LIMIT 5;`;
+      ORDER BY d.weight DESC;`;
 
       const result = await this.app.mysql.query(sql, [ userId ]);
 
+      let totalVote = 0;
+      let totalVP = 0;
+
+      for (const { weight } of result) {
+        totalVote += weight;
+        totalVP += weight ** 2;
+      }
+
       return {
-        list: result,
+        top5: result.slice(0, 5),
+        total: {
+          vote: totalVote,
+          vp: totalVP,
+        },
       };
     } catch (e) {
       this.ctx.logger.error(`vote fail: ${e}`);
       return {
-        list: [],
+        top5: [],
+        totalVoteNum: 0,
       };
     }
   }
