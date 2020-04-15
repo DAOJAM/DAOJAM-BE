@@ -737,7 +737,33 @@ class UserService extends Service {
         list: [],
       };
     }
+  }
 
+  async todayTop5votes(userId) {
+    if (userId === null) {
+      return [];
+    }
+
+    try {
+      // 查询总记录
+      const sql = `SELECT m.id, m.name, d.weight
+      FROM daojam_vote_log d
+      JOIN minetokens m USING (pid)
+      WHERE d.uid = ? AND DATE(d.create_time) = DATE(NOW())
+      ORDER BY d.weight DESC
+      LIMIT 5;`;
+
+      const result = await this.app.mysql.query(sql, [ userId ]);
+
+      return {
+        list: result,
+      }
+    } catch (e) {
+      this.ctx.logger.error(`vote fail: ${e}`);
+      return {
+        list: []
+      }
+    }
   }
 
   async getBookmarks(userId, order = 1, page = 1, pagesize = 20, channel_id = 1) {
