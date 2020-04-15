@@ -757,8 +757,8 @@ class UserService extends Service {
       let totalVP = 0;
 
       for (const { weight } of result) {
-        totalVote += row.weight;
-        totalVP += row.weight ** 2;
+        totalVote += weight;
+        totalVP += weight ** 2;
       }
 
       return {
