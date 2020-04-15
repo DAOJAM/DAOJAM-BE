@@ -753,11 +753,20 @@ class UserService extends Service {
 
       const result = await this.app.mysql.query(sql, [ userId ]);
 
+      let totalVote = 0;
+      let totalVP = 0;
+
+      for (const { weight } of result) {
+        totalVote += weight;
+        totalVP += weight ** 2;
+      }
+
       return {
         top5: result.slice(0, 5),
-        totalVoteNum: result.reduce(function(accumulator, current) {
-          return accumulator + current.weight
-        }, 0),
+        total: {
+          vote: totalVote,
+          vp: totalVP,
+        },
       }
     } catch (e) {
       this.ctx.logger.error(`vote fail: ${e}`);
