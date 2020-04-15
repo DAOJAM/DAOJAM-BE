@@ -20,6 +20,8 @@ class ProcessWithdraw extends Subscription {
   static get schedule() {
     return {
       interval: '20s',
+      // Since no EOS involved
+      disable: true,
       type: 'worker',
     };
   }
