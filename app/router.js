@@ -519,6 +519,7 @@ module.exports = app => {
   router.get('/dao/skill/options', passport.verify, controller.dao.skill.options);
   // -------------------------------- 投票合约API --------------------------------
   router.post('/daojam/voting/mint', passport.authorize, controller.voting.mint);
+  router.get('/daojam/voting/mint/log', passport.authorize, controller.voting.mintLog);
   router.get('/daojam/voting/balance', passport.authorize, controller.voting.balance);
   router.get('/daojam/voting/record', passport.authorize, controller.voting.userLog);
 
