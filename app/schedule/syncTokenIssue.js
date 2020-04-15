@@ -6,6 +6,8 @@ class SyncTokenIssue extends Subscription {
     return {
       interval: '3m',
       type: 'worker',
+      // Since no ETH Token involved
+      disable: true,
       immediate: true,
     };
   }
