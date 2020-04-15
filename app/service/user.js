@@ -709,7 +709,7 @@ class UserService extends Service {
 
     try {
       // 查询总记录
-      const sqlUserAllVote = `SELECT d.pid, d.uid, d.voter, SUM(d.weight) AS weight, SUM(POW(d.weight,2)) as daot, m.name, m.logo FROM daojam_vote_log d, minetokens m
+      const sqlUserAllVote = `SELECT d.pid, d.uid, d.voter, SUM(d.weight) AS weight, SUM(POW(d.weight,2)) as daot, m.id, m.name, m.logo FROM daojam_vote_log d, minetokens m
                               WHERE d.uid = ? AND d.pid = m.pid GROUP BY pid, uid 
                               ORDER BY weight DESC LIMIT ?, ?;`;
 
@@ -757,12 +757,12 @@ class UserService extends Service {
 
       return {
         list: result,
-      }
+      };
     } catch (e) {
       this.ctx.logger.error(`vote fail: ${e}`);
       return {
-        list: []
-      }
+        list: [],
+      };
     }
   }
 
