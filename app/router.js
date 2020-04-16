@@ -526,6 +526,7 @@ module.exports = app => {
   router.get('/daojam/voting/record', passport.authorize, controller.voting.userLog);
 
   router.get('/daojam/project', passport.verify, controller.project.index);
+  router.get('/daojam/project/stars', passport.authorize, controller.project.starList);
   router.get('/daojam/project/:id', passport.verify, controller.project.show);
 
   router.post('/daojam/near/mint', passport.authorize, controller.near.mint);
