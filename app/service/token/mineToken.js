@@ -156,6 +156,13 @@ class MineTokenService extends Service {
       const countResult = await this.app.mysql.query(sqlCount, [ token.pid ]);
 
       token.supporter = countResult[0].count || 0;
+
+
+      // 查询团队成员数量
+      const sqlTeams = 'SELECT COUNT(1) AS members FROM (SELECT * FROM minetoken_teams WHERE token_id = ? AND `status` = 1) AS a';
+      const resultTeams = await this.app.mysql.query(sqlTeams, [ token.id ]);
+      token.members = resultTeams[0].members;
+
     }
 
     return token;
@@ -1367,9 +1374,10 @@ class MineTokenService extends Service {
 
   // 获取用户参加的项目列表， status: 0 申请中 \ 1 已加入
   async joinedTeamList(userId, page = 1, pagesize = 20, status = 1) {
-    if (isNaN(userId)) return false;
+    try {
+      if (isNaN(userId)) return false;
 
-    const sql = `
+      const sql = `
       SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot FROM minetokens t1
       LEFT JOIN daojam_vote_log t2
       ON t1.pid = t2.pid
@@ -1378,16 +1386,34 @@ class MineTokenService extends Service {
       LIMIT :offset, :limit;
       SELECT count(1) as count FROM minetokens c1
       JOIN minetoken_teams b ON b.token_id = c1.id AND b.uid = :userId AND b.status = :status`;
-    const result = await this.app.mysql.query(sql, {
-      offset: (page - 1) * pagesize,
-      limit: pagesize,
-      userId,
-      status,
-    });
-    return {
-      count: result[1][0].count,
-      list: result[0],
-    };
+      const result = await this.app.mysql.query(sql, {
+        offset: (page - 1) * pagesize,
+        limit: pagesize,
+        userId,
+        status,
+      });
+
+      // 查询团队成员数量
+      const list = result[0];
+      if (result) {
+        for (let i = 0; i < list.length; i++) {
+          const sql = 'SELECT COUNT(1) AS members FROM (SELECT * FROM minetoken_teams WHERE token_id = ? AND `status` = 1) AS a';
+          const resultTeams = await this.app.mysql.query(sql, [ list[i].id ]);
+          list[i].members = resultTeams[0].members;
+        }
+      }
+
+      return {
+        count: result[1][0].count,
+        list,
+      };
+    } catch (e) {
+      this.logger.error(0);
+      return {
+        count: 0,
+        list: [],
+      };
+    }
   }
 
   // --------------- 团队管理 end ------------------
