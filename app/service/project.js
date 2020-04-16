@@ -31,17 +31,51 @@ class ProjectService extends Service {
     this.logger.info('Service: Project:: create end %j', result);
     return result;
   }
-  async list(page, pagesize) {
+  async list(page, pagesize, sort = 'votes', search = '', bookmarkUid = 0) {
+    // 排序
+    const sortOrderList = {
+      votes: 'ORDER BY SUM(t2.weight) DESC, t1.create_time ASC',
+      createTime: 'ORDER BY t1.create_time DESC',
+      name: 'ORDER BY CONVERT(t1.name USING GBK) ASC'
+    }
+    const sortOrder = sortOrderList[sort] ? sortOrderList[sort] : '';
+
+    // 筛选星标
+    let filterBookmarks = ['', ''];
+    if (bookmarkUid) {
+      if (Number.isNaN(bookmarkUid)) return false;
+      filterBookmarks = [
+        'JOIN minetoken_bookmarks b ON b.token_id = t1.id AND b.uid = :bookmarkUid',
+        'JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :bookmarkUid',
+      ];
+    }
+    // 搜索
+    let whereOrder = ['', ''];
+    if (search !== '') {
+      whereOrder = [
+        'WHERE Lower(t1.name) LIKE :search OR Lower(t1.brief) LIKE :search',
+        'WHERE Lower(c1.name) LIKE :search OR Lower(c1.symbol) LIKE :search',
+      ];
+    }
+
     const sql = `
       SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(1) AS supporter FROM minetokens t1
       LEFT JOIN daojam_vote_log t2
       ON t1.pid = t2.pid
+      ${ filterBookmarks[0] }
+      ${ whereOrder[0] }
       GROUP BY pid
+      ${ sortOrder }
       LIMIT :offset, :limit;
-      SELECT count(1) as count FROM minetokens;`;
+      SELECT count(1) as count FROM minetokens c1
+      ${ filterBookmarks[1] }
+      ${ whereOrder[1] };`;
+
     const result = await this.app.mysql.query(sql, {
       offset: (page - 1) * pagesize,
       limit: pagesize,
+      bookmarkUid,
+      search: '%' + search.toLowerCase() + '%',
     });
     return {
       count: result[1][0].count,
