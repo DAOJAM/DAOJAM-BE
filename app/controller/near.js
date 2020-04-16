@@ -135,5 +135,12 @@ class NearController extends Controller {
       data: result,
     };
   }
+  async setCreateCost() {
+    const ctx = this.ctx;
+    const { cost } = ctx.request.body;
+    const uid = ctx.user.id;
+    await this.service.nearprotocol.setCreateCost(parseInt(cost));
+    ctx.body = ctx.msg.success;
+  }
 }
 module.exports = NearController;
