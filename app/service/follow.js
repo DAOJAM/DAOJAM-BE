@@ -123,16 +123,24 @@ class FollowService extends Service {
       return 2;
     }
 
-    const { redis } = this.app;
-    const { id: myId } = this.ctx.user;
+    const { redis, mysql } = this.app;
+    // const { id: myId } = this.ctx.user;
 
     const follows = await redis.llen(`user:${uid}:follow_list`);
     const followers = await redis.llen(`user:${uid}:follower_list`);
     const followIds = await redis.lrange(`user:${uid}:follow_list`, (page - 1) * pagesize, page * pagesize);
+    console.log(followIds);
 
-    const result = [];
+    const result = await mysql.query(`
+      SELECT id, username, email, nickname, avatar, introduction
+      FROM users 
+      WHERE id IN (:ids) 
+      ORDER BY FIELD(id, :ids)
+    `, {
+      ids: followIds,
+    });
 
-    for (const id of followIds) {
+    /* for (const id of followIds) {
       const info = await redis.hgetall(`user:${id}:info`);
 
       info.fuid = id;
@@ -152,7 +160,7 @@ class FollowService extends Service {
       }
 
       result.push(info);
-    }
+    } */
 
     return {
       totalFollows: follows,
@@ -168,16 +176,24 @@ class FollowService extends Service {
       return 2;
     }
 
-    const { redis } = this.app;
-    const { id: myId } = this.ctx.user;
+    const { redis, mysql } = this.app;
+    // const { id: myId } = this.ctx.user;
 
     const follows = await redis.llen(`user:${uid}:follow_list`);
     const followers = await redis.llen(`user:${uid}:follower_list`);
     const followerIds = await redis.lrange(`user:${uid}:follower_list`, (page - 1) * pagesize, page * pagesize);
 
-    const result = [];
+    const result = await mysql.query(`
+      SELECT id, username, email, nickname, avatar, introduction
+      FROM users 
+      WHERE id IN (:ids) 
+      ORDER BY FIELD(id, :ids)
+    `, {
+      ids: followerIds,
+    });
 
-    for (const id of followerIds) {
+
+    /* for (const id of followerIds) {
       const info = await redis.hgetall(`user:${id}:info`);
 
       info.uid = id;
@@ -195,7 +211,7 @@ class FollowService extends Service {
       }
 
       result.push(info);
-    }
+    } */
 
     return {
       totalFollows: follows,
