@@ -32,33 +32,34 @@ class ProjectService extends Service {
     return result;
   }
   async list(page, pagesize, sort = 'votes', search = '', bookmarkUid = 0) {
-    // 排序
-    const sortOrderList = {
-      votes: 'ORDER BY SUM(t2.weight) DESC, t1.create_time ASC',
-      createTime: 'ORDER BY t1.create_time DESC',
-      name: 'ORDER BY CONVERT(t1.name USING GBK) ASC',
-    };
-    const sortOrder = sortOrderList[sort] ? sortOrderList[sort] : '';
+    try {
+      // 排序
+      const sortOrderList = {
+        votes: 'ORDER BY SUM(t2.weight) DESC, t1.create_time ASC',
+        createTime: 'ORDER BY t1.create_time DESC',
+        name: 'ORDER BY CONVERT(t1.name USING GBK) ASC',
+      };
+      const sortOrder = sortOrderList[sort] ? sortOrderList[sort] : '';
 
-    // 筛选星标
-    let filterBookmarks = [ '', '' ];
-    if (bookmarkUid) {
-      if (Number.isNaN(bookmarkUid)) return false;
-      filterBookmarks = [
-        'JOIN minetoken_bookmarks b ON b.token_id = t1.id AND b.uid = :bookmarkUid',
-        'JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :bookmarkUid',
-      ];
-    }
-    // 搜索
-    let whereOrder = [ '', '' ];
-    if (search !== '') {
-      whereOrder = [
-        'WHERE Lower(t1.name) LIKE :search OR Lower(t1.brief) LIKE :search',
-        'WHERE Lower(c1.name) LIKE :search OR Lower(c1.symbol) LIKE :search',
-      ];
-    }
+      // 筛选星标
+      let filterBookmarks = [ '', '' ];
+      if (bookmarkUid) {
+        if (Number.isNaN(bookmarkUid)) return false;
+        filterBookmarks = [
+          'JOIN minetoken_bookmarks b ON b.token_id = t1.id AND b.uid = :bookmarkUid',
+          'JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :bookmarkUid',
+        ];
+      }
+      // 搜索
+      let whereOrder = [ '', '' ];
+      if (search !== '') {
+        whereOrder = [
+          'WHERE Lower(t1.name) LIKE :search OR Lower(t1.brief) LIKE :search',
+          'WHERE Lower(c1.name) LIKE :search OR Lower(c1.symbol) LIKE :search',
+        ];
+      }
 
-    const sql = `
+      const sql = `
       SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(1) AS supporter FROM minetokens t1
       LEFT JOIN daojam_vote_log t2
       ON t1.pid = t2.pid
@@ -71,16 +72,35 @@ class ProjectService extends Service {
       ${filterBookmarks[1]}
       ${whereOrder[1]};`;
 
-    const result = await this.app.mysql.query(sql, {
-      offset: (page - 1) * pagesize,
-      limit: pagesize,
-      bookmarkUid,
-      search: '%' + search.toLowerCase() + '%',
-    });
-    return {
-      count: result[1][0].count,
-      list: result[0],
-    };
+      const result = await this.app.mysql.query(sql, {
+        offset: (page - 1) * pagesize,
+        limit: pagesize,
+        bookmarkUid,
+        search: '%' + search.toLowerCase() + '%',
+      });
+
+      // 查询团队成员数量
+      const list = result[0];
+      if (result) {
+        for (let i = 0; i < list.length; i++) {
+          const sql = 'SELECT COUNT(1) AS members FROM (SELECT * FROM minetoken_teams WHERE token_id = ? AND `status` = 1) AS a';
+          const resultTeams = await this.app.mysql.query(sql, [ list[i].id ]);
+          list[i].members = resultTeams[0].members;
+        }
+      }
+
+      console.log('list', list);
+
+      return {
+        count: result[1][0].count,
+        list,
+      };
+    } catch (e) {
+      return {
+        count: 0,
+        list: [],
+      };
+    }
   }
   async get(id) {
     const p = await this.app.mysql.get('minetokens', { id });
