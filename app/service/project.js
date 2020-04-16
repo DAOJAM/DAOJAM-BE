@@ -89,13 +89,12 @@ class ProjectService extends Service {
         }
       }
 
-      console.log('list', list);
-
       return {
         count: result[1][0].count,
         list,
       };
     } catch (e) {
+      this.logger.error(e);
       return {
         count: 0,
         list: [],
