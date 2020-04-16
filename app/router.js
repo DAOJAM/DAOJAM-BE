@@ -534,7 +534,7 @@ module.exports = app => {
   router.post('/daojam/near/vote', passport.authorize, controller.near.vote);
   router.get('/daojam/near/votinglog', passport.verify, controller.near.votingLog);
   // 需要添加权限限制！！！！！！！！！！！！！！！！！！！！
-  router.post('/daojam/near/setCreateCost', passport.authorize, controller.near.setCreateCost);
+  // router.post('/daojam/near/setCreateCost', passport.verify, controller.near.setCreateCost);
   // -------------------------------- 邮件订阅API --------------------------------
   router.post('/email/subscriber/:email', passport.verify, controller.user.setEmailSubscriber);
 
