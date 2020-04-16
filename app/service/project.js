@@ -32,21 +32,38 @@ class ProjectService extends Service {
     return result;
   }
   async list(page, pagesize) {
-    const sql = `
+    try {
+      const sql = `
       SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(1) AS supporter FROM minetokens t1
       LEFT JOIN daojam_vote_log t2
       ON t1.pid = t2.pid
       GROUP BY pid
       LIMIT :offset, :limit;
       SELECT count(1) as count FROM minetokens;`;
-    const result = await this.app.mysql.query(sql, {
-      offset: (page - 1) * pagesize,
-      limit: pagesize,
-    });
-    return {
-      count: result[1][0].count,
-      list: result[0],
-    };
+      const result = await this.app.mysql.query(sql, {
+        offset: (page - 1) * pagesize,
+        limit: pagesize,
+      });
+
+      // 查询团队成员数量
+      const list = result[0];
+      if (result) {
+        for (let i = 0; i < list.length; i++) {
+          const sql = 'SELECT COUNT(1) AS members FROM (SELECT * FROM minetoken_teams WHERE token_id = ? AND `status` = 1) AS a';
+          const resultTeams = await this.app.mysql.query(sql, [ list[i].id ]);
+          list[i].members = resultTeams[0].members;
+        }
+      }
+      return {
+        count: result[1][0].count,
+        list,
+      };
+    } catch (e) {
+      return {
+        count: 0,
+        list: [],
+      };
+    }
   }
   async get(id) {
     const p = await this.app.mysql.get('minetokens', { id });
