@@ -84,7 +84,7 @@ class NearController extends Controller {
     if (!user) {
       ctx.body = {
         ...ctx.msg.failure,
-        message: '没有绑定near',
+        message: 'not bind near account',
       };
       return;
     }
@@ -92,18 +92,58 @@ class NearController extends Controller {
     if (!p) {
       ctx.body = {
         ...ctx.msg.failure,
-        message: '项目未同步到near',
+        message: 'not sync on near',
       };
       return;
     }
     if (!p.voters[user.account]) {
       ctx.body = {
         ...ctx.msg.failure,
-        message: '您尚未投票',
+        message: 'not vote',
       };
       return;
     }
-    const existence = await this.app.mysql.get('daojam_vote_log', { pid: id, uid });
+    // 查看数据同步的block_number
+    const sqlResult = await this.app.mysql.select('daojam_vote_log', {
+      where: {
+        pid: id, uid,
+      },
+      columns: [ 'block_number' ],
+    });
+    // block_number数组结构
+    const blockNumberArrInDB = [];
+    for (const item of sqlResult) {
+      blockNumberArrInDB.push(item.block_number);
+    }
+    ctx.logger.info('blockNumberArrInDB: ', blockNumberArrInDB);
+    // near上的数据block_number
+    const voterArr = p.voters[user.account].vote_infos;
+    const voterObj = this.getVoteInfoObj(voterArr);
+    const blockNumberArrInNear = Object.keys(voterObj);
+    ctx.logger.info('blockNumberArrInNear: ', blockNumberArrInNear);
+    // 计算数据库和链上数据的差集
+    const diffSet = blockNumberArrInNear.filter(v => {
+      return blockNumberArrInDB.indexOf(parseInt(v)) === -1;
+    });
+    if (diffSet.length <= 0) {
+      ctx.body = {
+        ...ctx.msg.failure,
+        message: 'data error',
+      };
+      return;
+    }
+    const bi = diffSet[0];
+    const result = await this.service.votingLog.create({
+      pid: id,
+      uid,
+      voter: user.account,
+      weight: voterObj[bi].weight,
+      block_number: voterObj[bi].block_index,
+      trx: txHash,
+      block_hash: blockHash,
+    });
+
+    /* const existence = await this.app.mysql.get('daojam_vote_log', { pid: id, uid });
     if (existence) {
       ctx.body = {
         ...ctx.msg.failure,
@@ -120,7 +160,7 @@ class NearController extends Controller {
       block_number: 0,
       trx: txHash,
       block_hash: blockHash,
-    });
+    }); */
     ctx.body = {
       ...ctx.msg.success,
       data: result,
@@ -137,10 +177,21 @@ class NearController extends Controller {
   }
   async setCreateCost() {
     const ctx = this.ctx;
-    const { cost } = ctx.request.body;
-    const uid = ctx.user.id;
-    await this.service.nearprotocol.setCreateCost(parseInt(cost));
-    ctx.body = ctx.msg.success;
+    // const { cost } = ctx.request.body;
+    // const uid = ctx.user.id;
+    // await this.service.nearprotocol.setCreateCost(parseInt(cost));
+    const blockNumberArrInDB = await this.app.mysql.query('SELECT uid from daojam_mint_log');
+    /* const blockNumberArrInDB = await this.app.mysql.select('daojam_mint_log', {
+      columns: [ 'uid' ],
+    }); */
+    ctx.body = blockNumberArrInDB;
+  }
+  getVoteInfoObj(arr) {
+    const result = {};
+    for (const item of arr) {
+      result[item.block_index] = item;
+    }
+    return result;
   }
 }
 module.exports = NearController;
