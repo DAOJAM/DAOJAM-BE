@@ -92,6 +92,13 @@ class NearService extends Service {
       return null;
     }
   }
+  async setCreateCost(cost) {
+    cost = parseInt(cost);
+    const contract = this.app.nearcontract;
+    const res = await contract.set_create_cost({ cost });
+    this.ctx.logger.info('service.nearprotocol.setCreateCost result: ', res);
+    return res;
+  }
 }
 
 module.exports = NearService;
