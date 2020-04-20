@@ -60,7 +60,7 @@ class ProjectService extends Service {
       }
 
       const sql = `
-      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot FROM minetokens t1
+      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(1) AS supporter FROM minetokens t1
       LEFT JOIN daojam_vote_log t2
       ON t1.pid = t2.pid
       ${filterBookmarks[0]}
@@ -79,14 +79,13 @@ class ProjectService extends Service {
         search: '%' + search.toLowerCase() + '%',
       });
 
-      // 查询团队成员数量 X
-      // 查询 Supporter 数量 O
+      // 查询团队成员数量
       const list = result[0];
       if (result) {
         for (let i = 0; i < list.length; i++) {
-          const sql = 'SELECT COUNT(1) AS count FROM (SELECT DISTINCT uid FROM daojam_vote_log WHERE pid = ?) alias;';
-          const resultTeams = await this.app.mysql.query(sql, [ list[i].pid ]);
-          list[i].members = resultTeams[0].count;
+          const sql = 'SELECT COUNT(1) AS members FROM (SELECT * FROM minetoken_teams WHERE token_id = ? AND `status` = 1) AS a';
+          const resultTeams = await this.app.mysql.query(sql, [ list[i].id ]);
+          list[i].members = resultTeams[0].members;
         }
       }
 
