@@ -60,7 +60,7 @@ class ProjectService extends Service {
       }
 
       const sql = `
-      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(1) AS supporter FROM minetokens t1
+      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(DISTINCT t2.uid) AS supporter FROM minetokens t1
       LEFT JOIN daojam_vote_log t2
       ON t1.pid = t2.pid
       ${filterBookmarks[0]}
