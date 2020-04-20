@@ -13,7 +13,16 @@ class ProjectController extends Controller {
   async starList() {
     const { ctx } = this;
     const { pagesize = 10, page = 1, search = '', sort = 'votes' } = ctx.query;
-    const result = await this.service.project.list(parseInt(page), parseInt(pagesize), sort, search, ctx.user.id);
+    const result = await this.service.project.list(parseInt(page), parseInt(pagesize), sort, search, { userId: ctx.user.id, type: 'bookmarks' });
+    ctx.body = {
+      ...ctx.msg.success,
+      data: result,
+    };
+  }
+  async supportList() {
+    const { ctx } = this;
+    const { pagesize = 10, page = 1, search = '', sort = 'votes' } = ctx.query;
+    const result = await this.service.project.list(parseInt(page), parseInt(pagesize), sort, search, { userId: ctx.user.id, type: 'support' });
     ctx.body = {
       ...ctx.msg.success,
       data: result,
