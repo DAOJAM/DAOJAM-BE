@@ -106,13 +106,21 @@ class ProjectService extends Service {
     const sql = `
       SELECT IFNULL(SUM(weight), 0) as weight, IFNULL(SUM(POW(weight,2)), 0) as daot
       FROM daojam_vote_log
-      WHERE pid = :pid;`;
-    const weight = await this.app.mysql.query(sql, {
+      WHERE pid = :pid;
+
+      SELECT count(1) as stars
+      FROM minetoken_bookmarks
+      WHERE token_id = :id;`;
+    const additional = await this.app.mysql.query(sql, {
       pid: p.pid,
+      id: p.id
     });
     return {
       ...p,
-      ...weight[0],
+      // weight, daot
+      ...additional[0],
+      // stars
+      ...additional[1][0]
     };
   }
   async setLogo(id, logo) {
