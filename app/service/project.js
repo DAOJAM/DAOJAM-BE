@@ -31,8 +31,10 @@ class ProjectService extends Service {
     this.logger.info('Service: Project:: create end %j', result);
     return result;
   }
-  async list(page, pagesize, sort = 'votes', search = '', bookmarkUid = 0) {
+
+  async list(page, pagesize, sort = 'votes', search = '', filter = { userId: 0, type: 'all' }) {
     try {
+      const { userId, type } = filter;
       // 排序
       const sortOrderList = {
         votes: 'ORDER BY SUM(t2.weight) DESC, t1.create_time ASC',
@@ -41,15 +43,31 @@ class ProjectService extends Service {
       };
       const sortOrder = sortOrderList[sort] ? sortOrderList[sort] : '';
 
-      // 筛选星标
+      // 筛选
       let filterBookmarks = [ '', '' ];
-      if (bookmarkUid) {
-        if (Number.isNaN(bookmarkUid)) return false;
-        filterBookmarks = [
-          'JOIN minetoken_bookmarks b ON b.token_id = t1.id AND b.uid = :bookmarkUid',
-          'JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :bookmarkUid',
-        ];
+      let filterSupport = [
+        // 不筛选时的默认值
+        'LEFT JOIN daojam_vote_log t2 ON t1.pid = t2.pid',
+        '' 
+      ];
+      if (userId) {
+        if (Number.isNaN(userId)) return false;
+        if (type === 'bookmarks') {
+          // 已收藏的项目
+          filterBookmarks = [
+            'JOIN minetoken_bookmarks b ON b.token_id = t1.id AND b.uid = :userId',
+            'JOIN minetoken_bookmarks b ON b.token_id = c1.id AND b.uid = :userId',
+          ];
+        }
+        else if (type === 'support') {
+          // 已投票的项目
+          filterSupport = [
+            'JOIN daojam_vote_log t2 ON t1.pid = t2.pid AND t2.uid = :userId',
+            'JOIN daojam_vote_log v ON v.pid = c1.pid AND v.uid = :userId GROUP BY v.pid',
+          ];
+        }
       }
+
       // 搜索
       let whereOrder = [ '', '' ];
       if (search !== '') {
@@ -61,21 +79,20 @@ class ProjectService extends Service {
 
       const sql = `
       SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(DISTINCT t2.uid) AS supporter FROM minetokens t1
-      LEFT JOIN daojam_vote_log t2
-      ON t1.pid = t2.pid
+      ${filterSupport[0]}
       ${filterBookmarks[0]}
       ${whereOrder[0]}
       GROUP BY pid
       ${sortOrder}
       LIMIT :offset, :limit;
       SELECT count(1) as count FROM minetokens c1
-      ${filterBookmarks[1]}
+      ${filterBookmarks[1] || filterSupport[1]}
       ${whereOrder[1]};`;
 
       const result = await this.app.mysql.query(sql, {
         offset: (page - 1) * pagesize,
         limit: pagesize,
-        bookmarkUid,
+        userId,
         search: '%' + search.toLowerCase() + '%',
       });
 
