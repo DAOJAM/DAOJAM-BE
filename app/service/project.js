@@ -37,7 +37,8 @@ class ProjectService extends Service {
       const { userId, type } = filter;
       // 排序
       const sortOrderList = {
-        votes: 'ORDER BY SUM(t2.weight) DESC, t1.create_time ASC',
+        // project_ranking表默认就是votes排序
+        votes: '',
         createTime: 'ORDER BY t1.create_time DESC',
         name: 'ORDER BY CONVERT(t1.name USING GBK) ASC',
       };
@@ -47,7 +48,7 @@ class ProjectService extends Service {
       let filterBookmarks = [ '', '' ];
       let filterSupport = [
         // 不筛选时的默认值
-        'LEFT JOIN daojam_vote_log t2 ON t1.pid = t2.pid',
+        '',
         '' 
       ];
       if (userId) {
@@ -78,14 +79,14 @@ class ProjectService extends Service {
       }
 
       const sql = `
-      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot, count(DISTINCT t2.uid) AS supporter FROM minetokens t1
+      SELECT t1.* FROM (SELECT * FROM project_ranking) t1
       ${filterSupport[0]}
       ${filterBookmarks[0]}
       ${whereOrder[0]}
       GROUP BY pid
       ${sortOrder}
       LIMIT :offset, :limit;
-      SELECT count(1) as count FROM minetokens c1
+      SELECT count(1) as count FROM project_ranking c1
       ${filterBookmarks[1] || filterSupport[1]}
       ${whereOrder[1]};`;
 
