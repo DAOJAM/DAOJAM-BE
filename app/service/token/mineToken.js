@@ -147,25 +147,7 @@ class MineTokenService extends Service {
    * @param {object} parameters 查找的参数
    */
   async getToken(parameters) {
-    const token = await this.app.mysql.get('minetokens', parameters);
-
-    // Fix a bug because there's no any unit test
-    if (token) {
-      // Move from this.supporters() based on commit 6167231078f93f3d8af70195c7d3042182b5a74c
-      const sqlCount = 'SELECT COUNT(1) AS count FROM (SELECT DISTINCT uid FROM daojam_vote_log WHERE pid = ?) alias;';
-      const countResult = await this.app.mysql.query(sqlCount, [ token.pid ]);
-
-      token.supporter = countResult[0].count || 0;
-
-
-      // 查询团队成员数量
-      const sqlTeams = 'SELECT COUNT(1) AS members FROM (SELECT * FROM minetoken_teams WHERE token_id = ? AND `status` = 1) AS a';
-      const resultTeams = await this.app.mysql.query(sqlTeams, [ token.id ]);
-      token.members = resultTeams[0].members;
-
-    }
-
-    return token;
+    return await this.app.mysql.get('project_ranking', parameters);
   }
 
   /**
@@ -1378,13 +1360,11 @@ class MineTokenService extends Service {
       if (isNaN(userId)) return false;
 
       const sql = `
-      SELECT t1.*, SUM(t2.weight) as weight, SUM(POW(t2.weight,2)) as daot FROM minetokens t1
-      LEFT JOIN daojam_vote_log t2
-      ON t1.pid = t2.pid
+      SELECT t1.* FROM project_ranking t1
       JOIN minetoken_teams b ON b.token_id = t1.id AND b.uid = :userId AND b.status = :status
       GROUP BY pid
       LIMIT :offset, :limit;
-      SELECT count(1) as count FROM minetokens c1
+      SELECT count(1) as count FROM project_ranking c1
       JOIN minetoken_teams b ON b.token_id = c1.id AND b.uid = :userId AND b.status = :status`;
       const result = await this.app.mysql.query(sql, {
         offset: (page - 1) * pagesize,
@@ -1393,19 +1373,9 @@ class MineTokenService extends Service {
         status,
       });
 
-      // 查询团队成员数量
-      const list = result[0];
-      if (result) {
-        for (let i = 0; i < list.length; i++) {
-          const sql = 'SELECT COUNT(1) AS members FROM (SELECT * FROM minetoken_teams WHERE token_id = ? AND `status` = 1) AS a';
-          const resultTeams = await this.app.mysql.query(sql, [ list[i].id ]);
-          list[i].members = resultTeams[0].members;
-        }
-      }
-
       return {
         count: result[1][0].count,
-        list,
+        list: result[0],
       };
     } catch (e) {
       this.logger.error(0);
