@@ -38,7 +38,7 @@ class ProjectService extends Service {
       // 排序
       const sortOrderList = {
         // project_ranking表默认就是votes排序
-        votes: '',
+        votes: 'ORDER BY t1.rank_num ASC, t1.create_time ASC',
         createTime: 'ORDER BY t1.create_time DESC',
         name: 'ORDER BY CONVERT(t1.name USING GBK) ASC',
       };
