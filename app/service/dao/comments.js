@@ -55,7 +55,8 @@ class DaoCommentService extends Service {
       content,
       createdAt,
     });
-    return result;
+    const comment = await this.get(result.insertId);
+    return comment;
   }
 
   /**
