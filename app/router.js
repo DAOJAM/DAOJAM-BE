@@ -310,6 +310,11 @@ module.exports = app => {
 
   // ------------------- 支持列表 end --------------------------
 
+  // ========项目评论 start========
+  router.get('/minetoken/:pid/comments', passport.verify, controller.mineToken.getProjectsComments);
+  router.post('/minetoken/:pid/comment', passport.authorize, controller.mineToken.addComment);
+
+  // ========项目评论 end========
   // --------------- 团队管理 start ------------------
   // 邀请队员
   router.post('/minetoken/:id/teamMemberInvite', passport.authorize, controller.mineToken.teamMemberInvite);
@@ -481,6 +486,9 @@ module.exports = app => {
   // 开发用
   router.get('/_internal/getWallet', passport.apiVerify, controller.dev.getActiveUnderBalanceWallet);
   router.post('/_internal/justAirdrop', passport.apiVerify, controller.dev.justAirDrop);
+
+  // router.get('/_internal/:pid/comments/', passport.verify, controller.dev.getProjectsComments);
+  // router.post('/_internal/:pid/comment/', passport.verify, controller.dev.addComment);
   // 账号绑定
   router.post('/account/binding', passport.authorize, controller.account.binding.binding);
   router.post('/account/unbinding', passport.authorize, controller.account.binding.unbinding);
