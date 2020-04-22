@@ -580,7 +580,7 @@ class MineTokenController extends Controller {
     const { ctx } = this;
     const { pid } = ctx.params;
     this.logger.debug('triggered', ctx.query);
-    const comments = await this.service.dao.comments.get(pid);
+    const comments = await this.service.dao.comments.getList(pid);
     ctx.body = ctx.msg.success;
     ctx.body.data = { comments };
   }
@@ -591,6 +591,26 @@ class MineTokenController extends Controller {
     const { content } = ctx.request.body;
     try {
       const result = await this.service.dao.comments.create(ctx.user.id, pid, content);
+      ctx.body = ctx.msg.success;
+      ctx.body.data = { result };
+    } catch (error) {
+      ctx.body = ctx.msg.failure;
+      ctx.body.data = { error };
+    }
+  }
+
+  async deleteComment() {
+    const { ctx } = this;
+    // comment ID
+    const { cid } = ctx.params;
+    const comment = await this.service.dao.comments.get(cid);
+    if (comment.uid !== ctx.user.id) {
+      ctx.body = ctx.msg.failure;
+      ctx.body.data = { error: 'Not your comment' };
+      return;
+    }
+    try {
+      const result = await this.service.dao.comments.delete(cid);
       ctx.body = ctx.msg.success;
       ctx.body.data = { result };
     } catch (error) {
