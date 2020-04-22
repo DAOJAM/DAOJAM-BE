@@ -8,7 +8,7 @@ class DaoCommentService extends Service {
    * @param {number | string} projectId 项目的ID
    * @return {Array<Comment>} array
    */
-  async get(projectId) {
+  async getList(projectId) {
     // @todo: 后续数据多了可能需要做分页
     this.logger.info('projectId', projectId);
     let result = await this.app.mysql.query(
@@ -23,6 +23,18 @@ class DaoCommentService extends Service {
       return { ...rest, createdAt: new Date(createdAt).toISOString() };
     });
     return result;
+  }
+
+  get(id) {
+    return this.app.mysql.get('project_comments', { id });
+  }
+
+  /**
+   * Delete comment
+   * @param {number|string} id 评论的ID
+   */
+  delete(id) {
+    return this.app.mysql.delete('project_comments', { id });
   }
 
   /**
