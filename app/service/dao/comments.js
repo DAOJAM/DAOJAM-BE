@@ -12,7 +12,9 @@ class DaoCommentService extends Service {
     // @todo: 后续数据多了可能需要做分页
     this.logger.info('projectId', projectId);
     let result = await this.app.mysql.query(
-      `select * from project_comments
+      `select pc.*, u.nickname, u.username, u.avatar
+      from project_comments as pc
+      join users as u on u.id = pc.uid
       where projectId = :projectId
       order by createdAt DESC;`,
       {
