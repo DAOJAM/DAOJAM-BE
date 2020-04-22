@@ -313,7 +313,7 @@ module.exports = app => {
   // ========项目评论 start========
   router.get('/minetoken/:pid/comments', passport.verify, controller.mineToken.getProjectsComments);
   router.post('/minetoken/:pid/comment', passport.authorize, controller.mineToken.addComment);
-
+  router.delete('/minetoken/comment/:cid', passport.authorize, controller.mineToken.deleteComment);
   // ========项目评论 end========
   // --------------- 团队管理 start ------------------
   // 邀请队员
