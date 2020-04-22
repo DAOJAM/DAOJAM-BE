@@ -552,7 +552,10 @@ module.exports = app => {
   router.post('/task', passport.authorize, controller.task.updateTask);
   router.get('/taskTeam/:id', passport.verify, controller.task.taskTeam);
   // ------------------- 任务 end --------------------------
-  // ----- 排行榜 -------
-  router.get('/leaderboard', passport.verify, controller.leaderboard.all);
-};
 
+  // ----- 排行榜 -------
+  // 项目票数排名
+  router.get('/leaderboard', passport.verify, controller.leaderboard.all);
+  // 用户投票数排名
+  router.get('/leaderboard/userVotes', passport.verify, controller.leaderboard.userVotesRanking);
+};
