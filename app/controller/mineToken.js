@@ -576,6 +576,29 @@ class MineTokenController extends Controller {
     };
   }
 
+  async getProjectsComments() {
+    const { ctx } = this;
+    const { pid } = ctx.params;
+    this.logger.debug('triggered', ctx.query);
+    const comments = await this.service.dao.comments.get(pid);
+    ctx.body = ctx.msg.success;
+    ctx.body.data = { comments };
+  }
+
+  async addComment() {
+    const { ctx } = this;
+    const { pid } = ctx.params;
+    const { content } = ctx.request.body;
+    try {
+      const result = await this.service.dao.comments.create(ctx.user.id, pid, content);
+      ctx.body = ctx.msg.success;
+      ctx.body.data = { result };
+    } catch (error) {
+      ctx.body = ctx.msg.failure;
+      ctx.body.data = { error };
+    }
+  }
+
   async getRelated() {
     const { ctx } = this;
     const tokenId = parseInt(ctx.params.id);
