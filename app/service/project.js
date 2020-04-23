@@ -135,7 +135,7 @@ class ProjectService extends Service {
     return {
       ...p,
       // weight, daot
-      ...additional[0],
+      ...additional[0][0],
       // stars
       ...additional[1][0]
     };
