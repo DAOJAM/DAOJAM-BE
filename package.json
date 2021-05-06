@@ -55,7 +55,7 @@
     "querystring": "^0.2.0",
     "ramda": "^0.27.0",
     "remove-markdown": "^0.3.0",
-    "sanitize-html": "^1.20.1",
+    "sanitize-html": "^2.3.2",
     "tenpay": "^2.1.18",
     "turndown": "^5.0.3",
     "vnt": "git+https://github.com/vntchain/vnt.js.git",
