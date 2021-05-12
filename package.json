@@ -46,7 +46,7 @@
     "nanoid": "^2.1.1",
     "nearlib": "^0.22.0",
     "node-html-parser": "^1.2.1",
-    "nodemailer": "^6.1.1",
+    "nodemailer": "^6.4.16",
     "oauth": "^0.9.15",
     "ontology-ts-sdk": "^1.0.22",
     "page-metadata-parser": "^1.1.4",
