@@ -43,7 +43,7 @@
     "jwt-simple": "^0.5.5",
     "markdown-article-to-html": "^1.0.3",
     "moment": "^2.24.0",
-    "nanoid": "^2.1.1",
+    "nanoid": "^3.1.31",
     "nearlib": "^0.22.0",
     "node-html-parser": "^1.2.1",
     "nodemailer": "^6.1.1",
