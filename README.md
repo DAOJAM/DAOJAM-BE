@@ -13,16 +13,18 @@ see [egg docs][egg] for more detail.
 ### Development
 
 ```bash
-$ npm i
-$ npm run dev
-$ open http://localhost:7001/
+npm i
+
+npm run dev
+
+open http://localhost:7001/
 ```
 
 ### Deploy
 
 ```bash
 
-Deploy prod:
+# prod
 
 cd /dist/to/smart-signature-backend
 
@@ -34,7 +36,7 @@ docker-cmopose up -d --build prod
 
 ```bash
 
-Deploy test
+# test
 
 cd /dist/to/smart-signature-backend
 
