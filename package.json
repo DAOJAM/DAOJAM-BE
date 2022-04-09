@@ -42,7 +42,7 @@
     "ipfs-mini": "^1.1.5",
     "jwt-simple": "^0.5.5",
     "markdown-article-to-html": "^1.0.3",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "nanoid": "^2.1.1",
     "nearlib": "^0.22.0",
     "node-html-parser": "^1.2.1",
