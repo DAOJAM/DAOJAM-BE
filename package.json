@@ -9,7 +9,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^7.2.0",
     "alipay-sdk": "^3.0.8",
-    "async": "^2.6.2",
+    "async": "^2.6.4",
     "axios": "^0.18.0",
     "base64url": "^3.0.1",
     "cheerio": "1.0.0-rc.3",
